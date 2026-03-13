@@ -17,7 +17,7 @@ const char *InterfaceUI::colorMenu[7] = {
     "Negro",
     "Volver"};
 
-const char *actionNames[] =
+const char *actionNames[6] =
     {
         "Avanzar",
         "Retroceder",
@@ -25,6 +25,17 @@ const char *actionNames[] =
         "Izquierda",
         "Detener",
         "Giro eje"};
+
+
+RobotAction colorActions[6] =
+{
+    ACTION_FORWARD,
+    ACTION_BACKWARD,
+    ACTION_RIGHT,
+    ACTION_LEFT,
+    ACTION_STOP,
+    ACTION_SPIN
+};
 
 InterfaceUI::InterfaceUI(Adafruit_SSD1306 &oled, ButtonUI &btn, TCS230 &colorSensor, MotorDriver &motor)
     : button(btn), display(oled), sensor(colorSensor), motors(motor)
