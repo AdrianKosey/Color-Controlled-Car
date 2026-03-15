@@ -126,8 +126,8 @@ void InterfaceUI::update()
 
     if (needsRedraw)
     {
-        drawCurrentScreen();
         needsRedraw = false;
+        drawCurrentScreen();
     }
 }
 
@@ -160,12 +160,14 @@ void InterfaceUI::drawCurrentScreen()
         {
         case UI_START:
         {
+            Serial.println("DETECTANDO COLORES Y MOVIENDO MOTORES");
+
             int color = sensor.detectColor();
 
             RobotAction action = colorActions[color];
 
             executeAction(action);
-            Serial.println(sensor.detectColor());
+            Serial.println(actionNames[action]);
             display.setCursor(0, 0);
             display.println("Modo START");
 
@@ -174,6 +176,8 @@ void InterfaceUI::drawCurrentScreen()
 
             display.print("Accion:");
             display.println(actionNames[action]);
+            needsRedraw = true;
+            delay(100);
         }
         break;
         case UI_VIEW_COLORS:

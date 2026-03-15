@@ -14,12 +14,12 @@ void TCS230::begin()
     digitalWrite(S0,LOW);
     digitalWrite(S1,HIGH);
 
-    colors[0] = {40, 90, 90, true};    // Rojo
-    colors[1] = {90, 40, 90, true};    // Verde
-    colors[2] = {90, 90, 40, true};    // Azul
-    colors[3] = {45, 45, 90, true};    // Amarillo
-    colors[4] = {30, 30, 30, true};    // Blanco
-    colors[5] = {120, 120, 120, true}; // Negro
+    colors[0] = {205, 540, 140, true};    // Rojo
+    colors[1] = {400, 300, 130, true};    // Verde
+    colors[2] = {400, 310, 105, true};    // Azul
+    colors[3] = {168, 265, 90, true};    // Amarillo
+    colors[4] = {180, 225, 73, true};    // Blanco
+    colors[5] = {1300, 1700, 590, true}; // Negro
 }
 
 int TCS230::getRed()
@@ -72,6 +72,13 @@ ColorSample TCS230::readRGB()
     c.r = getRed();
     c.g = getGreen();
     c.b = getBlue();
+
+    Serial.print("R: ");
+    Serial.println(c.r );
+    Serial.print("G: ");
+    Serial.println(c.g);    
+    Serial.print("B: ");
+    Serial.println(c.b);
 
     return c;
 }
@@ -140,6 +147,7 @@ ColorSample TCS230::readNormalizedRGB()
 int TCS230::detectColor()
 {
     ColorSample current = readRGB();
+    // ColorSample current = readNormalizedRGB(); basura
     int best = -1;
     long minError = 100000;
 
@@ -148,7 +156,7 @@ int TCS230::detectColor()
         if (!colors[i].calibrated)
             continue;
 
-        // Suma de diferencias absolutas (fácil y rápido)
+        // Suma de diferencias absolutas
         long error = abs(current.r - (int)colors[i].r) +
                      abs(current.g - (int)colors[i].g) +
                      abs(current.b - (int)colors[i].b);
