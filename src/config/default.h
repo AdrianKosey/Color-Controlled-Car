@@ -3,11 +3,17 @@
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 #define OLED_RESET -1
-#define BUTTON_UI_PIN 7
+#define BUTTON_UI_PIN 05
 
-// COLOR
-#define S0 8
-#define S1 9
-#define S2 12
-#define S3 11
-#define SENSOR_OUT 10
+// COLOR SENSOR
+#define S0 15
+#define S1 01
+#define S2 16
+#define S3 04
+#define SENSOR_OUT 17
+
+// H BRIDGE L293D
+#define HBRIDGE_IN1 13
+#define HBRIDGE_IN2 12
+#define HBRIDGE_IN3 27
+#define HBRIDGE_IN4 14

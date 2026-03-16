@@ -26,16 +26,14 @@ const char *actionNames[6] =
         "Detener",
         "Giro eje"};
 
-
 RobotAction colorActions[6] =
-{
-    ACTION_FORWARD,
-    ACTION_BACKWARD,
-    ACTION_RIGHT,
-    ACTION_LEFT,
-    ACTION_STOP,
-    ACTION_SPIN
-};
+    {
+        ACTION_FORWARD,
+        ACTION_BACKWARD,
+        ACTION_RIGHT,
+        ACTION_LEFT,
+        ACTION_STOP,
+        ACTION_SPIN};
 
 InterfaceUI::InterfaceUI(Adafruit_SSD1306 &oled, ButtonUI &btn, TCS230 &colorSensor, MotorDriver &motor)
     : button(btn), display(oled), sensor(colorSensor), motors(motor)
@@ -176,6 +174,15 @@ void InterfaceUI::drawCurrentScreen()
 
             display.print("Accion:");
             display.println(actionNames[action]);
+
+
+            ColorSample current = sensor.readRGB();
+            display.print("R: ");
+            display.println(current.r);
+            display.print("G: ");
+            display.println(current.g);
+            display.print("B: ");
+            display.println(current.b);
             needsRedraw = true;
             delay(100);
         }
@@ -218,10 +225,14 @@ void InterfaceUI::drawCurrentScreen()
             display.setCursor(0, 0);
             display.println("Color Detectado");
             int indexColorLeido = sensor.detectColor();
+
+
             Serial.print("Color leido: ");
             Serial.println(indexColorLeido);
             display.print("Color: ");
             display.println(colorMenu[indexColorLeido]);
+
+            delay(2000);
         }
         break;
         case UI_VIEW_GIROSCOPIO:
