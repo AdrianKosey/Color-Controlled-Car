@@ -5,6 +5,7 @@ const InterfaceUI::MenuItem InterfaceUI::menuItems[] = {
     {"Calibrar Colores", UI_VIEW_COLORS},
     {"Ver Color", UI_VIEW_COLOR_ACTUAL},
     {"Reset Giroscopio", UI_VIEW_GIROSCOPIO},
+    {"Motores", UI_VIEW_MOTOR},
 
 };
 
@@ -24,7 +25,7 @@ const char *actionNames[6] =
         "Derecha",
         "Izquierda",
         "Detener",
-        "Giro eje"};
+        "Rotar"};
 
 // NO NEEDED BECAUSE RobotActions is an ENUM
 // RobotAction colorActions[6] =
@@ -45,6 +46,7 @@ InterfaceUI::InterfaceUI(Adafruit_SSD1306 &oled, ButtonUI &btn, TCS230 &colorSen
     selectedIndex = 0;
     needsRedraw = true;
     colorIndex = 0;
+    motorIndex = 0;
     scrollOffset = 0;
 }
 
@@ -202,6 +204,7 @@ void InterfaceUI::drawCurrentScreen()
 
                 display.setCursor(0, 0);
                 display.print("Color no conocido");
+                executeAction(ACTION_STOP);
             }
 
             needsRedraw = true;
@@ -259,6 +262,14 @@ void InterfaceUI::drawCurrentScreen()
             display.println("Colocar giroscopio a 0");
         }
         break;
+
+        case UI_VIEW_MOTOR:
+
+            display.setCursor(0, 0);
+            display.println("Motor");
+
+            break;
+
         default:
             break;
         }
@@ -287,6 +298,13 @@ void InterfaceUI::ui_nextItem()
 
         if (colorIndex < scrollOffset)
             scrollOffset = colorIndex;
+    }
+    else if (currentState == UI_VIEW_MOTOR)
+    {
+
+        ++motorIndex;
+        if (colorIndex >= 7)
+            colorIndex = 0;
     }
 }
 
