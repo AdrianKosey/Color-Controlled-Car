@@ -26,14 +26,15 @@ const char *actionNames[6] =
         "Detener",
         "Giro eje"};
 
-RobotAction colorActions[6] =
-    {
-        ACTION_FORWARD,
-        ACTION_BACKWARD,
-        ACTION_RIGHT,
-        ACTION_LEFT,
-        ACTION_STOP,
-        ACTION_SPIN};
+// NO NEEDED BECAUSE RobotActions is an ENUM
+// RobotAction colorActions[6] =
+//     {
+//         ACTION_FORWARD,
+//         ACTION_BACKWARD,
+//         ACTION_RIGHT,
+//         ACTION_LEFT,
+//         ACTION_STOP,
+//         ACTION_SPIN};
 
 InterfaceUI::InterfaceUI(Adafruit_SSD1306 &oled, ButtonUI &btn, TCS230 &colorSensor, MotorDriver &motor)
     : button(btn), display(oled), sensor(colorSensor), motors(motor)
@@ -162,29 +163,48 @@ void InterfaceUI::drawCurrentScreen()
 
             int color = sensor.detectColor();
 
-            RobotAction action = colorActions[color];
+            // Valida color existente
+            if (color != -1)
+            {
 
-            executeAction(action);
-            Serial.println(actionNames[action]);
-            display.setCursor(0, 0);
-            display.println("Modo START");
+                // "color" is actually the index, so making this change it isn't neccesary
+                // RobotAction action = colorActions[color];
+                RobotAction action = (RobotAction)color;
 
-            display.print("Color: ");
-            display.println(colorMenu[color]);
+                executeAction(action);
 
-            display.print("Accion:");
-            display.println(actionNames[action]);
+                Serial.println(actionNames[action]);
 
+                display.setCursor(0, 0);
+                display.println("Modo START");
 
-            ColorSample current = sensor.readRGB();
-            display.print("R: ");
-            display.println(current.r);
-            display.print("G: ");
-            display.println(current.g);
-            display.print("B: ");
-            display.println(current.b);
+                display.print("IND: ");
+                display.println(action);
+
+                display.print("Color: ");
+                display.println(colorMenu[color]);
+
+                display.print("Accion:");
+                display.println(actionNames[action]);
+
+                ColorSample current = sensor.readRGB();
+                display.print("R: ");
+                display.println(current.r);
+                display.print("G: ");
+                display.println(current.g);
+                display.print("B: ");
+                display.println(current.b);
+
+                delay(300);
+            }
+            else
+            {
+
+                display.setCursor(0, 0);
+                display.print("Color no conocido");
+            }
+
             needsRedraw = true;
-            delay(100);
         }
         break;
         case UI_VIEW_COLORS:
@@ -225,7 +245,6 @@ void InterfaceUI::drawCurrentScreen()
             display.setCursor(0, 0);
             display.println("Color Detectado");
             int indexColorLeido = sensor.detectColor();
-
 
             Serial.print("Color leido: ");
             Serial.println(indexColorLeido);
