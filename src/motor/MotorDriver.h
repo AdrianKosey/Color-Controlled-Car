@@ -8,7 +8,7 @@ private:
 
 public:
 
-    MotorDriver(int a,int b,int c,int d,int e,int f);
+    MotorDriver(int in1, int in2, int in3, int in4, int ena, int enb);
 
     void begin();
 

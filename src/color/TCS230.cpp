@@ -20,6 +20,14 @@ void TCS230::begin()
     colors[3] = {168, 265, 90, true};    // Amarillo
     colors[4] = {180, 225, 73, true};    // Blanco
     colors[5] = {1300, 1700, 590, true}; // Negro
+
+
+    colors[0] = {21, 72, 59, true};    // Rojo
+    colors[1] = {41, 25, 35, true};    // Verde
+    colors[2] = {48, 30, 21, true};    // Azul
+    colors[3] = {16, 28, 52, true};    // Amarillo
+    colors[4] = {18, 20, 17, true};    // Blanco
+    colors[5] = {190, 220, 180, true}; // Negro
 }
 
 int TCS230::getRed()

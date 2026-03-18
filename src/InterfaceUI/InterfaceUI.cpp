@@ -5,6 +5,7 @@ const InterfaceUI::MenuItem InterfaceUI::menuItems[] = {
     {"Calibrar Colores", UI_VIEW_COLORS},
     {"Ver Color", UI_VIEW_COLOR_ACTUAL},
     {"Reset Giroscopio", UI_VIEW_GIROSCOPIO},
+    {"Motores", UI_VIEW_MOTOR},
 
 };
 
@@ -24,18 +25,17 @@ const char *actionNames[6] =
         "Derecha",
         "Izquierda",
         "Detener",
-        "Giro eje"};
+        "Rotar"};
 
-
-RobotAction colorActions[6] =
-{
-    ACTION_FORWARD,
-    ACTION_BACKWARD,
-    ACTION_RIGHT,
-    ACTION_LEFT,
-    ACTION_STOP,
-    ACTION_SPIN
-};
+// NO NEEDED BECAUSE RobotActions is an ENUM
+// RobotAction colorActions[6] =
+//     {
+//         ACTION_FORWARD,
+//         ACTION_BACKWARD,
+//         ACTION_RIGHT,
+//         ACTION_LEFT,
+//         ACTION_STOP,
+//         ACTION_SPIN};
 
 InterfaceUI::InterfaceUI(Adafruit_SSD1306 &oled, ButtonUI &btn, TCS230 &colorSensor, MotorDriver &motor)
     : button(btn), display(oled), sensor(colorSensor), motors(motor)
@@ -46,6 +46,7 @@ InterfaceUI::InterfaceUI(Adafruit_SSD1306 &oled, ButtonUI &btn, TCS230 &colorSen
     selectedIndex = 0;
     needsRedraw = true;
     colorIndex = 0;
+    motorIndex = 0;
     scrollOffset = 0;
 }
 
@@ -164,20 +165,49 @@ void InterfaceUI::drawCurrentScreen()
 
             int color = sensor.detectColor();
 
-            RobotAction action = colorActions[color];
+            // Valida color existente
+            if (color != -1)
+            {
 
-            executeAction(action);
-            Serial.println(actionNames[action]);
-            display.setCursor(0, 0);
-            display.println("Modo START");
+                // "color" is actually the index, so making this change it isn't neccesary
+                // RobotAction action = colorActions[color];
+                RobotAction action = (RobotAction)color;
 
-            display.print("Color: ");
-            display.println(colorMenu[color]);
+                executeAction(action);
 
-            display.print("Accion:");
-            display.println(actionNames[action]);
+                Serial.println(actionNames[action]);
+
+                display.setCursor(0, 0);
+                display.println("Modo START");
+
+                display.print("IND: ");
+                display.println(action);
+
+                display.print("Color: ");
+                display.println(colorMenu[color]);
+
+                display.print("Accion:");
+                display.println(actionNames[action]);
+
+                ColorSample current = sensor.readRGB();
+                display.print("R: ");
+                display.println(current.r);
+                display.print("G: ");
+                display.println(current.g);
+                display.print("B: ");
+                display.println(current.b);
+
+                delay(300);
+            }
+            else
+            {
+
+                display.setCursor(0, 0);
+                display.print("Color no conocido");
+                executeAction(ACTION_STOP);
+            }
+
             needsRedraw = true;
-            delay(100);
         }
         break;
         case UI_VIEW_COLORS:
@@ -218,10 +248,13 @@ void InterfaceUI::drawCurrentScreen()
             display.setCursor(0, 0);
             display.println("Color Detectado");
             int indexColorLeido = sensor.detectColor();
+
             Serial.print("Color leido: ");
             Serial.println(indexColorLeido);
             display.print("Color: ");
             display.println(colorMenu[indexColorLeido]);
+
+            delay(2000);
         }
         break;
         case UI_VIEW_GIROSCOPIO:
@@ -229,6 +262,14 @@ void InterfaceUI::drawCurrentScreen()
             display.println("Colocar giroscopio a 0");
         }
         break;
+
+        case UI_VIEW_MOTOR:
+
+            display.setCursor(0, 0);
+            display.println("Motor");
+
+            break;
+
         default:
             break;
         }
@@ -257,6 +298,13 @@ void InterfaceUI::ui_nextItem()
 
         if (colorIndex < scrollOffset)
             scrollOffset = colorIndex;
+    }
+    else if (currentState == UI_VIEW_MOTOR)
+    {
+
+        ++motorIndex;
+        if (colorIndex >= 7)
+            colorIndex = 0;
     }
 }
 

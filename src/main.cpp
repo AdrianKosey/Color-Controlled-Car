@@ -8,17 +8,19 @@
 TCS230 sensorColor(S0, S1, S2, S3, SENSOR_OUT);
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 ButtonUI actionButton(BUTTON_UI_PIN);
-MotorDriver motors(22,23,24,25,26,27);
+MotorDriver motors(HBRIDGE_IN1, HBRIDGE_IN2, HBRIDGE_IN3, HBRIDGE_IN4, 26, 25);
 InterfaceUI interfaceUI(display, actionButton, sensorColor, motors);
 
 void setup() {
   // put your setup code here, to run once:
-  Serial.begin(9600);
-  Wire.begin();
+  Serial.begin(115200);
+  // Wire.begin();
   sensorColor.begin();
   actionButton.begin();
   motors.begin();
   interfaceUI.begin();
+
+  Serial.println("DOme");
 
 }
 

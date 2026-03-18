@@ -31,7 +31,7 @@ ButtonEvent ButtonUI::handleButton(){
     // Press and hold
     if (lastButtonState == LOW && currentState == LOW)
     {
-        if (!longPressDetected && (millis() - pressStartTime >= 2000))
+        if (!longPressDetected && (millis() - pressStartTime >= 1000))
         {
             longPressDetected = true;
             event = ButtonEvent::LONG_PRESS;

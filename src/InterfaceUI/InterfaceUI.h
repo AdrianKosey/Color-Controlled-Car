@@ -12,16 +12,17 @@ enum UIState
     UI_START,
     UI_VIEW_COLORS,
     UI_VIEW_COLOR_ACTUAL,
-    UI_VIEW_GIROSCOPIO
+    UI_VIEW_GIROSCOPIO,
+    UI_VIEW_MOTOR
 };
 enum RobotAction
 {
-    ACTION_FORWARD,
-    ACTION_BACKWARD,
-    ACTION_RIGHT,
-    ACTION_LEFT,
-    ACTION_STOP,
-    ACTION_SPIN
+    ACTION_FORWARD,     // Rojo
+    ACTION_BACKWARD,    // Verde
+    ACTION_RIGHT,       // Azul
+    ACTION_LEFT,        // Amarillo
+    ACTION_STOP,        // Blanco
+    ACTION_SPIN         // Negro
 };
 
 class InterfaceUI
@@ -45,8 +46,13 @@ private:
     bool needsRedraw;
 
     static const char *colorMenu[7];
-    RobotAction colorActions[6];
+
+    // WRONG: RobotAction is actually a enum, so making an array doesnt have sense
+    // RobotAction colorActions[6];
+
+    // Index for UI option
     uint8_t colorIndex;
+    uint8_t motorIndex;
     uint8_t scrollOffset;
 
     static const uint8_t visibleItems = 5;
