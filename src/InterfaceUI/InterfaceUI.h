@@ -54,6 +54,10 @@ private:
     uint8_t colorIndex;
     uint8_t motorIndex;
     uint8_t scrollOffset;
+    unsigned long motorTimer;
+    bool motorIsFast;
+    float calA;
+    float calB;
 
     static const uint8_t visibleItems = 5;
 

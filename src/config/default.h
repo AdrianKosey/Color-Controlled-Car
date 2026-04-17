@@ -12,8 +12,10 @@
 #define S3 04
 #define SENSOR_OUT 17
 
-// H BRIDGE L293D
+// H BRIDGE L298N
 #define HBRIDGE_IN1 13
 #define HBRIDGE_IN2 12
+#define HBRIDGE_ENA 25  // Motor Izquierdo
 #define HBRIDGE_IN3 27
 #define HBRIDGE_IN4 14
+#define HBRIDGE_ENB 26  // Motor Derecho
