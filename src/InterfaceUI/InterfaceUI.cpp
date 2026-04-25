@@ -48,6 +48,12 @@ InterfaceUI::InterfaceUI(Adafruit_SSD1306 &oled, ButtonUI &btn, TCS230 &colorSen
     colorIndex = 0;
     motorIndex = 0;
     scrollOffset = 0;
+    motorTimer = 0;
+    motorIsFast = false;
+    calA = 0.75f;
+    calB = 1.0f;
+    motorIndex = 0;
+    motor.setCalibration(calA, calB);
 }
 
 void InterfaceUI::begin()
@@ -67,6 +73,19 @@ void InterfaceUI::begin()
 void InterfaceUI::update()
 {
     ButtonEvent evt = button.handleButton();
+
+    if (currentState == UI_VIEW_MOTOR)
+    {
+        if (millis() - motorTimer > 3000)
+        {
+            motorTimer = millis();
+            motorIsFast = !motorIsFast;
+            motors.setSpeed(motorIsFast ? 200 : 100);
+            motors.setCalibration(calA, calB);
+            motors.forward();
+            needsRedraw = true;
+        }
+    }
 
     if (currentState == UI_MENU)
     {
@@ -116,10 +135,49 @@ void InterfaceUI::update()
             }
         }
     }
+    else if (currentState == UI_VIEW_MOTOR)
+    {
+        if (evt == ButtonEvent::SHORT_PRESS)
+        {
+            if (motorIndex == 0)
+            {
+                calA += 0.05f;
+                if (calA > 1.01f)
+                    calA = 0.0f;
+            }
+            else if (motorIndex == 1)
+            {
+                calB += 0.05f;
+                if (calB > 1.01f)
+                    calB = 0.0f;
+            }
+            else if (motorIndex == 2)
+            {
+                motors.stop();
+                currentState = UI_MENU;
+            }
+            motors.setCalibration(calA, calB);
+            needsRedraw = true;
+        }
+        else if (evt == ButtonEvent::LONG_PRESS)
+        {
+            motorIndex++;
+            if (motorIndex > 2)
+                motorIndex = 0;
+
+            // Si el nuevo index es salir, podrías elegir si parar o no
+            if (motorIndex == 2)
+            { /* Opcional: motores.stop(); */
+            }
+
+            needsRedraw = true;
+        }
+    }
     else
     {
         if (evt == ButtonEvent::LONG_PRESS)
         {
+            motors.stop();
             ui_select(); // volver al menú
             needsRedraw = true;
         }
@@ -259,16 +317,48 @@ void InterfaceUI::drawCurrentScreen()
         break;
         case UI_VIEW_GIROSCOPIO:
         {
-            display.println("Colocar giroscopio a 0");
+            display.setCursor(0, 0);
+            display.println("Giroscopio");
+            display.println("Esperando accion...");
         }
         break;
 
         case UI_VIEW_MOTOR:
+        {
+            display.clearDisplay();
+            display.setTextColor(SSD1306_WHITE);
 
+            // Encabezado
             display.setCursor(0, 0);
-            display.println("Motor");
+            display.print("CALIB. MOTORES ");
+            display.println(motorIsFast ? "Rapido" : "Lento");
 
-            break;
+            // Fila Motor A
+            display.setCursor(0, 18);
+            if (motorIndex == 0)
+                display.print("> Motor A (Iz): ");
+            else
+             display.print("  Motor A (Iz): ");
+            display.println(calA);
+
+            // Fila Motor B
+            display.setCursor(0, 30);
+            if (motorIndex == 1)
+                display.print("> Motor B (De): ");
+            else
+            display.print("  Motor B (De): ");
+            display.println(calB);
+
+            // Opción Salir
+            display.setCursor(0, 45);
+            if (motorIndex == 2)
+                display.print("> ");
+            display.print("[ Volver al Menu ]");
+
+
+            display.display();
+        }
+        break;
 
         default:
             break;
@@ -299,13 +389,6 @@ void InterfaceUI::ui_nextItem()
         if (colorIndex < scrollOffset)
             scrollOffset = colorIndex;
     }
-    else if (currentState == UI_VIEW_MOTOR)
-    {
-
-        ++motorIndex;
-        if (colorIndex >= 7)
-            colorIndex = 0;
-    }
 }
 
 void InterfaceUI::ui_select()
@@ -326,18 +409,22 @@ void InterfaceUI::executeAction(RobotAction action)
     switch (action)
     {
     case ACTION_FORWARD:
+        motors.setSpeed(motorIsFast ? 200 : 100);
         motors.forward();
         break;
 
     case ACTION_BACKWARD:
+        motors.setSpeed(motorIsFast ? 200 : 100);
         motors.backward();
         break;
 
     case ACTION_RIGHT:
+        motors.setSpeed(motorIsFast ? 200 : 100);
         motors.right();
         break;
 
     case ACTION_LEFT:
+        motors.setSpeed(motorIsFast ? 200 : 100);
         motors.left();
         break;
 
@@ -346,7 +433,9 @@ void InterfaceUI::executeAction(RobotAction action)
         break;
 
     case ACTION_SPIN:
-        motors.spin();
+        motorIsFast = !motorIsFast;
+        motors.setSpeed(motorIsFast ? 200 : 100);
+        motors.forward();
         break;
     }
 }
