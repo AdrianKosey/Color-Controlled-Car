@@ -17,12 +17,12 @@ enum UIState
 };
 enum RobotAction
 {
-    ACTION_FORWARD,     // Rojo
-    ACTION_BACKWARD,    // Verde
-    ACTION_RIGHT,       // Azul
-    ACTION_LEFT,        // Amarillo
-    ACTION_STOP,        // Blanco
-    ACTION_SPIN         // Negro
+    ACTION_RIGHT,     // Rojo
+    ACTION_SPIN,    // Verde
+    ACTION_LEFT,       // Azul
+    ACTION_BACKWARD,        // Amarillo
+    ACTION_FORWARD,        // Blanco
+    ACTION_STOP         // Negro
 };
 
 class InterfaceUI
