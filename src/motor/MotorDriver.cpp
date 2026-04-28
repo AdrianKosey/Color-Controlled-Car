@@ -1,12 +1,19 @@
 #include "MotorDriver.h"
 
 MotorDriver::MotorDriver(int in1, int in2, int in3, int in4, int ena, int enb)
-    : in1(in1), in2(in2), in3(in3), in4(in4), ena(ena), enb(enb)
+    : in1(in1), in2(in2), in3(in3), in4(in4), ena(ena), enb(enb), imu(I2C_MODE, 0x6A)
 {
     currentSpeed = 0;
-    // Por defecto, ambos motores al 100% de la velocidad solicitada
-    factorA = 1.0; 
-    factorB = 1.0; 
+
+    currentHeading = 0;
+    targetHeading = 0;
+
+    kp = 3.0;
+    kd = 1.0;
+
+    isCorrectionActive = false;
+
+    lastTime = millis();
 }
 
 void MotorDriver::begin()
@@ -18,92 +25,146 @@ void MotorDriver::begin()
     pinMode(ena, OUTPUT);
     pinMode(enb, OUTPUT);
 
-    // Inicializar motores apagados
+    Wire.begin();
+
+    if (imu.begin() != 0)
+    {
+        Serial.println("Error: LSM6DS3 no detectado.");
+    }
+
+    lastTime = millis();
     stop();
 }
 
-// --- GESTIÓN DE VELOCIDAD ---
+void MotorDriver::updateHeading()
+{
+    unsigned long currentTime = millis();
+    float dt = (currentTime - lastTime) / 1000.0;
+    lastTime = currentTime;
 
-void MotorDriver::setCalibration(float calA, float calB) {
-    // Permite ajustar las diferencias físicas de los motores.
-    // Ej: Si el motor B es más rápido, usa setCalibration(1.0, 0.85);
-    factorA = calA;
-    factorB = calB;
-    applySpeed(); // Actualiza la velocidad inmediatamente
+    float gyroZ = imu.readFloatGyroZ();
+
+    // sensibilidad
+    if (abs(gyroZ) > 0.5)
+    {
+        currentHeading += gyroZ * dt;
+    }
 }
 
-void MotorDriver::setSpeed(int speed) {
-    // Aseguramos que la velocidad base esté entre 0 y 255
-    currentSpeed = constrain(speed, 0, 255);
-    applySpeed();
+void MotorDriver::update()
+{
+    updateHeading();
+
+    if (isCorrectionActive)
+    {
+        applySpeed();
+    }
+}
+
+
+float MotorDriver::getHeading() { return currentHeading; }
+
+float MotorDriver::getGyroZ() { return imu.readFloatGyroZ(); }
+
+void MotorDriver::resetHeading()
+{
+    currentHeading = 0;
 }
 
 void MotorDriver::applySpeed() {
-    // Aplicamos el factor de calibración a cada motor
-    int speedA = currentSpeed * factorA;
-    int speedB = currentSpeed * factorB;
-    
-    analogWrite(ena, speedA);
-    analogWrite(enb, speedB);
+    int speedA, speedB;
+
+    if (isCorrectionActive) {
+
+        float error = targetHeading - currentHeading;
+        float gyroZ = imu.readFloatGyroZ();
+
+        int correction = (error * kp) - (gyroZ * kd);
+        correction = constrain(correction, -80, 80);
+
+        int baseSpeed = currentSpeed;
+
+        speedA = baseSpeed - correction;
+        speedB = baseSpeed + correction;
+
+    } else {
+        speedA = currentSpeed;
+        speedB = currentSpeed;
+    }
+
+    analogWrite(ena, constrain(speedA, 0, 255));
+    analogWrite(enb, constrain(speedB, 0, 255));
 }
 
-// --- LÓGICA DE MOVIMIENTO ---
+void MotorDriver::setSpeed(int speed)
+{
+    currentSpeed = constrain(speed, 0, 255);
+}
+
+// Movimiento
 
 void MotorDriver::forward()
 {
+
+    resetHeading();
+    targetHeading = 0;
+    isCorrectionActive = true;
+
     digitalWrite(in1, HIGH);
     digitalWrite(in2, LOW);
     digitalWrite(in3, LOW);
     digitalWrite(in4, HIGH);
-    applySpeed();
 }
 
 void MotorDriver::backward()
 {
+    isCorrectionActive = false;
+
     digitalWrite(in1, LOW);
     digitalWrite(in2, HIGH);
     digitalWrite(in3, HIGH);
     digitalWrite(in4, LOW);
-    applySpeed();
-}
-
-void MotorDriver::right()
-{
-    // Para girar suave, un motor va adelante y otro se detiene o va más lento
-    // Aquí hacemos giro sobre su propio eje (spin suave)
-    digitalWrite(in1, LOW);
-    digitalWrite(in2, LOW);
-    digitalWrite(in3, LOW);
-    digitalWrite(in4, HIGH);
-    applySpeed();
-}
-
-void MotorDriver::left()
-{
-    digitalWrite(in1, HIGH);
-    digitalWrite(in2, LOW);
-    digitalWrite(in3, LOW);
-    digitalWrite(in4, LOW);
-    applySpeed();
 }
 
 void MotorDriver::stop()
 {
+    isCorrectionActive = false;
+
     digitalWrite(in1, LOW);
     digitalWrite(in2, LOW);
     digitalWrite(in3, LOW);
     digitalWrite(in4, LOW);
-    // Apagamos el PWM para detener por completo
+
     analogWrite(ena, 0);
     analogWrite(enb, 0);
 }
 
+void MotorDriver::right()
+{
+    isCorrectionActive = false;
+
+    digitalWrite(in1, LOW);
+    digitalWrite(in2, LOW);
+    digitalWrite(in3, LOW);
+    digitalWrite(in4, HIGH);
+}
+
+void MotorDriver::left()
+{
+    isCorrectionActive = false;
+
+    digitalWrite(in1, HIGH);
+    digitalWrite(in2, LOW);
+    digitalWrite(in3, LOW);
+    digitalWrite(in4, LOW);
+}
+
 void MotorDriver::spin()
 {
-    // Clockwise spin sobre su propio eje
+    isCorrectionActive = false;
+
     digitalWrite(in1, HIGH);
     digitalWrite(in2, LOW);
     digitalWrite(in3, HIGH);
     digitalWrite(in4, LOW);
-    applySpeed();
 }

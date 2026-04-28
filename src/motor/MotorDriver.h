@@ -2,14 +2,20 @@
 #define MOTORDRIVER_H
 
 #include <Arduino.h>
+#include "../libs/SparkFun_LSM6DS3/src/SparkFunLSM6DS3.h" // Librería para el giroscopio LSM6DS3
+#include <Wire.h>
 
 class MotorDriver {
   private:
     int in1, in2, in3, in4, ena, enb;
     int currentSpeed;
-    float factorA; 
-    float factorB;
-
+    LSM6DS3 imu;
+    float targetHeading;    // angulo objetivo
+    float currentHeading;   // anngulo actual
+    unsigned long lastTime;
+    float kp, kd;
+    bool isCorrectionActive;
+    void updateHeading(); // velocidad y
     void applySpeed(); 
 
   public:
@@ -18,7 +24,6 @@ class MotorDriver {
     void begin();
     
     void setSpeed(int speed);
-    void setCalibration(float calA, float calB);
     
     // Movimientos
     void forward();
@@ -27,6 +32,10 @@ class MotorDriver {
     void left();
     void stop();
     void spin();
+    void update();
+    float getHeading();
+    float getGyroZ();
+    void resetHeading();
 };
 
 #endif

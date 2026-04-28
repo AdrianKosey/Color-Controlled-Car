@@ -46,14 +46,13 @@ InterfaceUI::InterfaceUI(Adafruit_SSD1306 &oled, ButtonUI &btn, TCS230 &colorSen
     selectedIndex = 0;
     needsRedraw = true;
     colorIndex = 0;
-    motorIndex = 0;
     scrollOffset = 0;
     motorTimer = 0;
     motorIsFast = false;
-    calA = 1.0f;
-    calB = 1.0f;
-    motorIndex = 0;
-    motor.setCalibration(1.0, 0.85);
+    historyIdx = 0;
+    motorModeInitialized = false;
+    for (int i = 0; i < 128; i++)
+        gyroHistory[i] = 0;
 }
 
 void InterfaceUI::begin()
@@ -72,21 +71,9 @@ void InterfaceUI::begin()
 
 void InterfaceUI::update()
 {
+
+    motors.update();
     ButtonEvent evt = button.handleButton();
-
-    if (currentState == UI_VIEW_MOTOR)
-    {
-        if (millis() - motorTimer > 3000)
-        {
-            motorTimer = millis();
-            motorIsFast = !motorIsFast;
-            motors.setSpeed(motorIsFast ? 200 : 100);
-            motors.setCalibration(calA, calB);
-            motors.forward();
-            needsRedraw = true;
-        }
-    }
-
     if (currentState == UI_MENU)
     {
         if (evt == ButtonEvent::SHORT_PRESS)
@@ -97,6 +84,42 @@ void InterfaceUI::update()
         else if (evt == ButtonEvent::LONG_PRESS)
         {
             ui_select();
+            needsRedraw = true;
+        }
+    }
+    else if (currentState == UI_START)
+    {
+        static unsigned long lastColorRead = 0;
+        if (!motorModeInitialized)
+        {
+            motorModeInitialized = true;
+
+            motors.stop();
+            motors.resetHeading();
+            motors.setSpeed(200);
+            lastColorRead = millis();
+        }
+        if (millis() - lastColorRead > 200)
+        {
+            lastColorRead = millis();
+            int color = sensor.detectColor();
+
+            if (color != -1)
+            {
+                currentColor = color;
+                currentAction = (RobotAction)color;
+
+                executeAction(currentAction);
+
+                lastColorSample = sensor.readRGB();
+            }
+            else
+            {
+                currentColor = -1;
+                currentAction = ACTION_STOP;
+                motors.stop();
+            }
+
             needsRedraw = true;
         }
     }
@@ -137,46 +160,61 @@ void InterfaceUI::update()
     }
     else if (currentState == UI_VIEW_MOTOR)
     {
+        if (!motorModeInitialized)
+        {
+            motorModeInitialized = true;
+
+            motors.stop();
+            motors.resetHeading();
+            motors.setSpeed(200);
+            motors.forward();
+
+            motorTimer = millis();
+        }
+
+        if (millis() - motorTimer > 3000)
+        {
+            motorTimer = millis();
+            motorIsFast = !motorIsFast;
+            motors.setSpeed(motorIsFast ? 255 : 200);
+        }
+        if (evt == ButtonEvent::LONG_PRESS)
+        {
+            motors.stop();
+            currentState = UI_MENU;
+            needsRedraw = true;
+        }
+        needsRedraw = true;
+    }
+    else if (currentState == UI_VIEW_GIROSCOPIO)
+    {
+        // Valor eje z
+        float gz = motors.getGyroZ();
+
+        // mapeamos
+        // valor 0 centrado
+        int8_t mappedValue = (int8_t)constrain(gz / 4, -15, 15);
+
+        gyroHistory[historyIdx] = mappedValue;
+        historyIdx = (historyIdx + 1) % 128; // Buffer circular
+
+        // redibujo
+        needsRedraw = true;
+
         if (evt == ButtonEvent::SHORT_PRESS)
         {
-            if (motorIndex == 0)
-            {
-                calA += 0.05f;
-                if (calA > 1.01f)
-                    calA = 0.0f;
-            }
-            else if (motorIndex == 1)
-            {
-                calB += 0.05f;
-                if (calB > 1.01f)
-                    calB = 0.0f;
-            }
-            else if (motorIndex == 2)
-            {
-                motors.stop();
-                currentState = UI_MENU;
-            }
-            motors.setCalibration(calA, calB);
-            needsRedraw = true;
+            motors.resetHeading();
         }
         else if (evt == ButtonEvent::LONG_PRESS)
         {
-            motorIndex++;
-            if (motorIndex > 2)
-                motorIndex = 0;
-
-            // Si el nuevo index es salir, podrías elegir si parar o no
-            if (motorIndex == 2)
-            { /* Opcional: motores.stop(); */
-            }
-
-            needsRedraw = true;
+            currentState = UI_MENU;
         }
     }
     else
     {
         if (evt == ButtonEvent::LONG_PRESS)
         {
+            motorModeInitialized = false;
             motors.stop();
             ui_select(); // volver al menú
             needsRedraw = true;
@@ -219,53 +257,37 @@ void InterfaceUI::drawCurrentScreen()
         {
         case UI_START:
         {
-            Serial.println("DETECTANDO COLORES Y MOVIENDO MOTORES");
+            display.clearDisplay();
+            display.setCursor(0, 0);
 
-            int color = sensor.detectColor();
+            display.println("Modo START");
 
-            // Valida color existente
-            if (color != -1)
+            if (currentColor != -1)
             {
-
-                // "color" is actually the index, so making this change it isn't neccesary
-                // RobotAction action = colorActions[color];
-                RobotAction action = (RobotAction)color;
-
-                executeAction(action);
-
-                Serial.println(actionNames[action]);
-
-                display.setCursor(0, 0);
-                display.println("Modo START");
-
                 display.print("IND: ");
-                display.println(action);
+                display.println(currentAction);
 
                 display.print("Color: ");
-                display.println(colorMenu[color]);
+                display.println(colorMenu[currentColor]);
 
                 display.print("Accion:");
-                display.println(actionNames[action]);
+                display.println(actionNames[currentAction]);
 
-                ColorSample current = sensor.readRGB();
                 display.print("R: ");
-                display.println(current.r);
-                display.print("G: ");
-                display.println(current.g);
-                display.print("B: ");
-                display.println(current.b);
+                display.println(lastColorSample.r);
 
-                delay(300);
+                display.print("G: ");
+                display.println(lastColorSample.g);
+
+                display.print("B: ");
+                display.println(lastColorSample.b);
             }
             else
             {
-
-                display.setCursor(0, 0);
-                display.print("Color no conocido");
-                executeAction(ACTION_STOP);
+                display.println("Color no conocido");
             }
 
-            needsRedraw = true;
+            display.display();
         }
         break;
         case UI_VIEW_COLORS:
@@ -318,8 +340,29 @@ void InterfaceUI::drawCurrentScreen()
         case UI_VIEW_GIROSCOPIO:
         {
             display.setCursor(0, 0);
-            display.println("Giroscopio");
-            display.println("Esperando accion...");
+            display.println("--- MONITOR GYRO ---");
+
+            // Linea base
+            display.drawFastHLine(0, 45, 128, SSD1306_WHITE);
+
+            // onda
+            for (int x = 0; x < 127; x++)
+            {
+                // indices para el punto actual y el siguiente
+                uint8_t i1 = (historyIdx + x) % 128;
+                uint8_t i2 = (historyIdx + x + 1) % 128;
+
+                // linea entre cada punto 
+                display.drawLine(
+                    x, 45 - gyroHistory[i1],
+                    x + 1, 45 - gyroHistory[i2],
+                    SSD1306_WHITE);
+            }
+
+            display.setCursor(0, 12);
+            display.print("Z: ");
+            display.print(motors.getHeading(), 1); // angulo acumulado
+            display.println(" deg");
         }
         break;
 
@@ -327,34 +370,24 @@ void InterfaceUI::drawCurrentScreen()
         {
             display.clearDisplay();
             display.setTextColor(SSD1306_WHITE);
-
-            // Encabezado
             display.setCursor(0, 0);
-            display.print("CALIB. MOTORES ");
+            display.println("MODO GIROSCOPIO");
+            display.setCursor(0, 12);
+            display.print("Velocidad: ");
             display.println(motorIsFast ? "Rapido" : "Lento");
 
-            // Fila Motor A
-            display.setCursor(0, 18);
-            if (motorIndex == 0)
-                display.print("> Motor A (Iz): ");
-            else
-             display.print("  Motor A (Iz): ");
-            display.println(calA);
+            // Heading actual
+            display.setCursor(0, 24);
+            display.print("Heading: ");
+            display.print(motors.getHeading(), 1);
+            display.println(" deg");
 
-            // Fila Motor B
-            display.setCursor(0, 30);
-            if (motorIndex == 1)
-                display.print("> Motor B (De): ");
-            else
-            display.print("  Motor B (De): ");
-            display.println(calB);
-
-            // Opción Salir
-            display.setCursor(0, 45);
-            if (motorIndex == 2)
-                display.print("> ");
-            display.print("[ Volver al Menu ]");
-
+            // Velocidad angular
+            display.setCursor(0, 36);
+            display.print("Gyro Z: ");
+            display.print(motors.getGyroZ(), 1);
+            display.setCursor(0, 52);
+            display.print("Long: Salir");
 
             display.display();
         }

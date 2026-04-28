@@ -17,12 +17,12 @@ enum UIState
 };
 enum RobotAction
 {
-    ACTION_FORWARD,     // Rojo
-    ACTION_BACKWARD,    // Verde
-    ACTION_RIGHT,       // Azul
-    ACTION_LEFT,        // Amarillo
-    ACTION_STOP,        // Blanco
-    ACTION_SPIN         // Negro
+    ACTION_STOP,  // Rojo
+    ACTION_BACKWARD, // Verde
+    ACTION_RIGHT,    // Azul
+    ACTION_LEFT,     // Amarillo
+    ACTION_FORWARD,     // Blanco
+    ACTION_SPIN      // Negro
 };
 
 class InterfaceUI
@@ -52,16 +52,18 @@ private:
 
     // Index for UI option
     uint8_t colorIndex;
-    uint8_t motorIndex;
     uint8_t scrollOffset;
     unsigned long motorTimer;
     bool motorIsFast;
-    float calA;
-    float calB;
 
     static const uint8_t visibleItems = 5;
-
+    int8_t gyroHistory[128];
+    uint8_t historyIdx;
+    bool motorModeInitialized = false;
     void drawCurrentScreen();
+    int currentColor = -1;
+    RobotAction currentAction = ACTION_STOP;
+    ColorSample lastColorSample;
 
 public:
     InterfaceUI(Adafruit_SSD1306 &oled, ButtonUI &btn, TCS230 &colorSensor, MotorDriver &motor);

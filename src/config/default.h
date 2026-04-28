@@ -3,7 +3,7 @@
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 #define OLED_RESET -1
-#define BUTTON_UI_PIN 05
+#define BUTTON_UI_PIN 23
 
 // COLOR SENSOR
 #define S0 15
