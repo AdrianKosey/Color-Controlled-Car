@@ -442,22 +442,18 @@ void InterfaceUI::executeAction(RobotAction action)
     switch (action)
     {
     case ACTION_FORWARD:
-        motors.setSpeed(motorIsFast ? 200 : 100);
         motors.forward();
         break;
 
     case ACTION_BACKWARD:
-        motors.setSpeed(motorIsFast ? 200 : 100);
         motors.backward();
         break;
 
     case ACTION_RIGHT:
-        motors.setSpeed(motorIsFast ? 200 : 100);
         motors.right();
         break;
 
     case ACTION_LEFT:
-        motors.setSpeed(motorIsFast ? 200 : 100);
         motors.left();
         break;
 
@@ -466,8 +462,6 @@ void InterfaceUI::executeAction(RobotAction action)
         break;
 
     case ACTION_SPIN:
-        motorIsFast = !motorIsFast;
-        motors.setSpeed(motorIsFast ? 200 : 100);
         motors.forward();
         break;
     }
