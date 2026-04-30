@@ -23,12 +23,12 @@ void TCS230::begin()
     colors[5] = {190, 220, 180, true}; // Negro
 
 
-    colors[0] = {240, 960, 751, true};    // Rojo
-    colors[1] = {1175, 680, 778, true};    // Verde
-    colors[2] = {1300, 1160, 720, true};    // Azul
-    colors[3] = {200, 350, 625, true};    // Amarillo
-    colors[4] = {180, 200, 160, true};    // Blanco
-    colors[5] = {1400, 1700, 1400, true}; // Negro
+    colors[0] = {34,112, 91, true};    // Rojo
+    colors[1] = {120, 78, 88, true};    // Verde
+    colors[2] = {140, 140, 80, true};    // Azul
+    colors[3] = {24, 40, 65, true};    // Amarillo
+    colors[4] = {30, 34, 30, true};    // Blanco
+    colors[5] = {150, 190, 170, true}; // Negro
 
 }
 

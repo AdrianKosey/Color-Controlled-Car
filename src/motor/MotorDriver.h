@@ -15,6 +15,7 @@ class MotorDriver {
     unsigned long lastTime;
     float kp, kd;
     bool isCorrectionActive;
+    float gyroBiasZ = 0;
     void updateHeading(); // velocidad y
     void applySpeed(); 
 
@@ -36,6 +37,7 @@ class MotorDriver {
     float getHeading();
     float getGyroZ();
     void resetHeading();
+    void calibrateGyro();
 };
 
 #endif

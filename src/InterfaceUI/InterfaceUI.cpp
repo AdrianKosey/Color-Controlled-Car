@@ -98,29 +98,56 @@ void InterfaceUI::update()
             motors.resetHeading();
             motors.setSpeed(200);
             lastColorRead = millis();
+
+            actionInProgress = false;
         }
-        if (millis() - lastColorRead > 200)
+
+        // SI HAY ACCIÓN EN CURSO Y NO ES AVANZAR (BLOQUEO TEMPORAL)
+        if (actionInProgress)
         {
-            lastColorRead = millis();
-            int color = sensor.detectColor();
-
-            if (color != -1)
+            if (millis() - actionStartTime >= ACTION_DURATION)
             {
-                currentColor = color;
-                currentAction = (RobotAction)color;
-
-                executeAction(currentAction);
-
-                lastColorSample = sensor.readRGB();
+                actionInProgress = false;
+                // Opcional: Si quieres que se detenga al terminar los 2s:
+                // motors.stop();
             }
-            else
+        }
+
+        else
+        {
+            if (millis() - lastColorRead > 50)
             {
-                currentColor = -1;
-                currentAction = ACTION_STOP;
-                motors.stop();
-            }
+                lastColorRead = millis();
+                int color = sensor.detectColor();
 
-            needsRedraw = true;
+                if (color != -1)
+                {
+                    currentColor = color;
+                    currentAction = (RobotAction)color;
+                    if (currentAction == ACTION_FORWARD)
+                    {
+                        executeAction(currentAction);
+                        actionInProgress = false; // No bloqueamos
+                    }
+                    else
+                    {
+                        executeAction(currentAction);
+                        actionStartTime = millis(); // Iniciamos temporizador
+                        actionInProgress = true;    // Bloqueamos hasta que pase el tiempo
+                    }
+
+                    lastColorSample = sensor.readRGB();
+                    needsRedraw = true;
+                }
+                else
+                {
+                    currentColor = -1;
+                    currentAction = ACTION_STOP;
+                    motors.stop();
+                }
+
+                needsRedraw = true;
+            }
         }
     }
     else if (currentState == UI_VIEW_COLORS)
@@ -352,7 +379,7 @@ void InterfaceUI::drawCurrentScreen()
                 uint8_t i1 = (historyIdx + x) % 128;
                 uint8_t i2 = (historyIdx + x + 1) % 128;
 
-                // linea entre cada punto 
+                // linea entre cada punto
                 display.drawLine(
                     x, 45 - gyroHistory[i1],
                     x + 1, 45 - gyroHistory[i2],
@@ -443,26 +470,32 @@ void InterfaceUI::executeAction(RobotAction action)
     {
     case ACTION_FORWARD:
         motors.forward();
+
         break;
 
     case ACTION_BACKWARD:
         motors.backward();
+        // delay(2000);
         break;
 
     case ACTION_RIGHT:
         motors.right();
+        // delay(2000);
         break;
 
     case ACTION_LEFT:
         motors.left();
+        // delay(2000);
         break;
 
     case ACTION_STOP:
         motors.stop();
+        // delay(2000);
         break;
 
     case ACTION_SPIN:
-        motors.forward();
+        motors.spin();
+        // delay(2000);
         break;
     }
 }

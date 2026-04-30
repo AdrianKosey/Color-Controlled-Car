@@ -17,12 +17,12 @@ enum UIState
 };
 enum RobotAction
 {
-    ACTION_STOP,  // Rojo
-    ACTION_BACKWARD, // Verde
-    ACTION_RIGHT,    // Azul
-    ACTION_LEFT,     // Amarillo
-    ACTION_FORWARD,     // Blanco
-    ACTION_SPIN      // Negro
+    ACTION_RIGHT,    // Rojo
+    ACTION_SPIN,     // Verde
+    ACTION_LEFT,     // Azul
+    ACTION_BACKWARD, // Amarillo
+    ACTION_FORWARD,  // Blanco
+    ACTION_STOP      // Negro
 };
 
 class InterfaceUI
@@ -36,6 +36,10 @@ private:
     UIState currentState;
     uint8_t selectedIndex;
     uint8_t menuLength;
+
+    bool actionInProgress = false;
+    unsigned long actionStartTime = 0;
+    const unsigned long ACTION_DURATION = 2000; // 2 segundos
 
     struct MenuItem
     {

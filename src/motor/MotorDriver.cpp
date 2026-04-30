@@ -9,7 +9,7 @@ MotorDriver::MotorDriver(int in1, int in2, int in3, int in4, int ena, int enb)
     targetHeading = 0;
 
     kp = 3.0;
-    kd = 1.0;
+    kd = 1.5;
 
     isCorrectionActive = false;
 
@@ -34,6 +34,18 @@ void MotorDriver::begin()
 
     lastTime = millis();
     stop();
+    calibrateGyro();
+}
+
+void MotorDriver::calibrateGyro(){
+    float sum = 0;
+    int samples=200;
+    for(int i = 0; i < samples; i++){
+        sum+= imu.readFloatGyroZ();
+        delay(5);
+    }
+    gyroBiasZ = sum/samples;
+    Serial.print("Bias Z:"); Serial.println(gyroBiasZ);
 }
 
 void MotorDriver::updateHeading()
@@ -42,13 +54,14 @@ void MotorDriver::updateHeading()
     float dt = (currentTime - lastTime) / 1000.0;
     lastTime = currentTime;
 
-    float gyroZ = imu.readFloatGyroZ();
+    float gyroZ = imu.readFloatGyroZ()-gyroBiasZ;
 
     // sensibilidad
-    if (abs(gyroZ) > 0.5)
+    if (abs(gyroZ) < 5)
     {
-        currentHeading += gyroZ * dt;
+        gyroZ=0;
     }
+    currentHeading += gyroZ * dt;
 }
 
 void MotorDriver::update()
@@ -80,7 +93,7 @@ void MotorDriver::applySpeed() {
         float gyroZ = imu.readFloatGyroZ();
 
         int correction = (error * kp) - (gyroZ * kd);
-        correction = constrain(correction, -80, 80);
+        correction = constrain(correction, -70, 70);
 
         int baseSpeed = currentSpeed;
 
@@ -92,13 +105,13 @@ void MotorDriver::applySpeed() {
         speedB = currentSpeed;
     }
 
-    analogWrite(ena, constrain(speedA, 0, 255));
-    analogWrite(enb, constrain(speedB, 0, 255));
+    analogWrite(ena, constrain(speedA, 0, 150));
+    analogWrite(enb, constrain(speedB, 0, 150));
 }
 
 void MotorDriver::setSpeed(int speed)
 {
-    currentSpeed = constrain(speed, 0, 255);
+    currentSpeed = constrain(speed, 0, 150);
 }
 
 // Movimiento
