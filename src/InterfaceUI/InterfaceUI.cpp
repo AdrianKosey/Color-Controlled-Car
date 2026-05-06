@@ -3,7 +3,8 @@
 const InterfaceUI::MenuItem InterfaceUI::menuItems[] = {
     {"Iniciar Recorrido", UI_START},
     {"Calibrar Colores", UI_VIEW_COLORS},
-    {"Ver Color", UI_VIEW_COLOR_ACTUAL},
+    // {"Ver Color", UI_VIEW_COLOR_ACTUAL},
+    {"Esquivar", UI_OBSTACLE},
     {"Reset Giroscopio", UI_VIEW_GIROSCOPIO},
     {"Motores", UI_VIEW_MOTOR},
 
@@ -37,8 +38,8 @@ const char *actionNames[6] =
 //         ACTION_STOP,
 //         ACTION_SPIN};
 
-InterfaceUI::InterfaceUI(Adafruit_SSD1306 &oled, ButtonUI &btn, TCS230 &colorSensor, MotorDriver &motor)
-    : button(btn), display(oled), sensor(colorSensor), motors(motor)
+InterfaceUI::InterfaceUI(Adafruit_SSD1306 &oled, ButtonUI &btn, TCS230 &colorSensor, MotorDriver &motor, Ultrasonic &ultrasonic)
+    : button(btn), display(oled), sensor(colorSensor), motors(motor), ultrasonic(ultrasonic)
 {
     menuLength = sizeof(menuItems) / sizeof(menuItems[0]);
 
@@ -115,7 +116,7 @@ void InterfaceUI::update()
 
         else
         {
-            if (millis() - lastColorRead > 50)
+            if (millis() - lastColorRead > 100)
             {
                 lastColorRead = millis();
                 int color = sensor.detectColor();
@@ -350,18 +351,16 @@ void InterfaceUI::drawCurrentScreen()
             display.fillRect(121, 12 + barY, 4, barHeight, SSD1306_WHITE);
         }
         break;
-        case UI_VIEW_COLOR_ACTUAL:
+        case UI_OBSTACLE:
         {
-            display.setCursor(0, 0);
-            display.println("Color Detectado");
-            int indexColorLeido = sensor.detectColor();
 
-            Serial.print("Color leido: ");
-            Serial.println(indexColorLeido);
-            display.print("Color: ");
-            display.println(colorMenu[indexColorLeido]);
-
-            delay(2000);
+            while (1)
+            {
+                float distance = ultrasonic.getDistance();
+                Serial.print(distance); // Print the distance value
+                Serial.println(" cm");
+                delay(1000);
+            }
         }
         break;
         case UI_VIEW_GIROSCOPIO:

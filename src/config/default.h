@@ -19,3 +19,7 @@
 #define HBRIDGE_IN3 27
 #define HBRIDGE_IN4 14
 #define HBRIDGE_ENB 26  // Motor Derecho
+
+// HC-SR04
+#define ECHO_PIN 5
+#define TRIGG_PIN 18

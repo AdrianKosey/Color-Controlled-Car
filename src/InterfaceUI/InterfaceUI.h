@@ -6,12 +6,14 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include "../config/default.h"
+#include "../ultrasonic/Ultrasonic.h"
 enum UIState
 {
     UI_MENU,
     UI_START,
     UI_VIEW_COLORS,
-    UI_VIEW_COLOR_ACTUAL,
+    //UI_VIEW_COLOR_ACTUAL,
+    UI_OBSTACLE,
     UI_VIEW_GIROSCOPIO,
     UI_VIEW_MOTOR
 };
@@ -34,12 +36,13 @@ private:
     TCS230 &sensor;
     MotorDriver &motors;
     UIState currentState;
+    Ultrasonic ultrasonic;
     uint8_t selectedIndex;
     uint8_t menuLength;
 
     bool actionInProgress = false;
     unsigned long actionStartTime = 0;
-    const unsigned long ACTION_DURATION = 2000; // 2 segundos
+    const unsigned long ACTION_DURATION = 1500; // 1.5 segundos
 
     struct MenuItem
     {
@@ -70,7 +73,7 @@ private:
     ColorSample lastColorSample;
 
 public:
-    InterfaceUI(Adafruit_SSD1306 &oled, ButtonUI &btn, TCS230 &colorSensor, MotorDriver &motor);
+    InterfaceUI(Adafruit_SSD1306 &oled, ButtonUI &btn, TCS230 &colorSensor, MotorDriver &motor, Ultrasonic &ultrasonic);
     void begin();
     void update();
     void ui_nextItem();

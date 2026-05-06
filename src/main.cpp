@@ -4,14 +4,18 @@
 #include "color/TCS230.h"
 #include "config/default.h"
 #include "motor/MotorDriver.h"
+#include "ultrasonic/Ultrasonic.h"
 // OLED
 TCS230 sensorColor(S0, S1, S2, S3, SENSOR_OUT);
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 ButtonUI actionButton(BUTTON_UI_PIN);
 MotorDriver motors(HBRIDGE_IN1, HBRIDGE_IN2, HBRIDGE_IN3, HBRIDGE_IN4, 26, 25);
-InterfaceUI interfaceUI(display, actionButton, sensorColor, motors);
+Ultrasonic ultrasonic(ECHO_PIN, TRIGG_PIN);
+InterfaceUI interfaceUI(display, actionButton, sensorColor, motors, ultrasonic);
 
-void setup() {
+
+void setup()
+{
   // put your setup code here, to run once:
   Serial.begin(115200);
   // Wire.begin();
@@ -19,12 +23,13 @@ void setup() {
   actionButton.begin();
   motors.begin();
   interfaceUI.begin();
+  ultrasonic.begin();
 
-  Serial.println("DOme");
-
+  Serial.println("Starting");
 }
 
-void loop() {
+void loop()
+{
   // put your main code here, to run repeatedly:
   /*digitalWrite(S2, LOW);
     digitalWrite(S3, LOW);
@@ -45,7 +50,6 @@ void loop() {
     Serial.println(pulseIn(SENSOR_OUT, LOW));
 
     delay(500);*/
-    interfaceUI.update();
-    delay(100);
-
+  interfaceUI.update();
+  delay(100);
 }
