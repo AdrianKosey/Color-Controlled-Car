@@ -37,15 +37,18 @@ void MotorDriver::begin()
     calibrateGyro();
 }
 
-void MotorDriver::calibrateGyro(){
+void MotorDriver::calibrateGyro()
+{
     float sum = 0;
-    int samples=200;
-    for(int i = 0; i < samples; i++){
-        sum+= imu.readFloatGyroZ();
+    int samples = 200;
+    for (int i = 0; i < samples; i++)
+    {
+        sum += imu.readFloatGyroZ();
         delay(5);
     }
-    gyroBiasZ = sum/samples;
-    Serial.print("Bias Z:"); Serial.println(gyroBiasZ);
+    gyroBiasZ = sum / samples;
+    Serial.print("Bias Z:");
+    Serial.println(gyroBiasZ);
 }
 
 void MotorDriver::updateHeading()
@@ -54,12 +57,12 @@ void MotorDriver::updateHeading()
     float dt = (currentTime - lastTime) / 1000.0;
     lastTime = currentTime;
 
-    float gyroZ = imu.readFloatGyroZ()-gyroBiasZ;
+    float gyroZ = imu.readFloatGyroZ() - gyroBiasZ;
 
     // sensibilidad
     if (abs(gyroZ) < 5)
     {
-        gyroZ=0;
+        gyroZ = 0;
     }
     currentHeading += gyroZ * dt;
 }
@@ -74,7 +77,6 @@ void MotorDriver::update()
     }
 }
 
-
 float MotorDriver::getHeading() { return currentHeading; }
 
 float MotorDriver::getGyroZ() { return imu.readFloatGyroZ(); }
@@ -84,10 +86,14 @@ void MotorDriver::resetHeading()
     currentHeading = 0;
 }
 
-void MotorDriver::applySpeed() {
+void MotorDriver::applySpeed()
+{
     int speedA, speedB;
 
-    if (isCorrectionActive) {
+    // TESTING
+    isCorrectionActive = false;
+    if (isCorrectionActive)
+    {
 
         float error = targetHeading - currentHeading;
         float gyroZ = imu.readFloatGyroZ();
@@ -99,8 +105,9 @@ void MotorDriver::applySpeed() {
 
         speedA = baseSpeed - correction;
         speedB = baseSpeed + correction;
-
-    } else {
+    }
+    else
+    {
         speedA = currentSpeed;
         speedB = currentSpeed;
     }
@@ -127,6 +134,9 @@ void MotorDriver::forward()
     digitalWrite(in2, LOW);
     digitalWrite(in3, LOW);
     digitalWrite(in4, HIGH);
+
+    analogWrite(ena, constrain(currentSpeed, 0, 150));
+    analogWrite(enb, constrain(currentSpeed+30, 0, 150));
 }
 
 void MotorDriver::backward()

@@ -26,6 +26,11 @@ void setup()
   ultrasonic.begin();
 
   Serial.println("Starting");
+  
+  // El motor empieza hacia adelante
+  motors.setSpeed(100);
+  motors.forward();
+
 }
 
 void loop()
@@ -50,6 +55,25 @@ void loop()
     Serial.println(pulseIn(SENSOR_OUT, LOW));
 
     delay(500);*/
-  interfaceUI.update();
-  delay(100);
+  // interfaceUI.update();
+
+  float distance = ultrasonic.getDistance();
+  if(distance <= 18.0) {
+    Serial.println("Obstaculo");
+    motors.stop();
+    delay(2000);
+
+    // Gira izq
+
+    // Avanza X
+
+    /// Gira der
+
+    // Avanza Y
+
+    /// Gira der
+
+    // Avanza X
+  }
+  delay(50);
 }
