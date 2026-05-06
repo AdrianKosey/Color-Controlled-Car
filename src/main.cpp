@@ -63,17 +63,67 @@ void loop()
     motors.stop();
     delay(2000);
 
-    // Gira izq
+    // Gira der
+    motors.setSpeed(150);
+    motors.right();
+    delay(500);
+
+    motors.stop();
+    delay(500);
 
     // Avanza X
+    motors.setSpeed(110);
+    motors.forward();
+    delay(300);
 
-    /// Gira der
+    motors.stop();
+    delay(500);
+
+    /// Gira izq
+    motors.setSpeed(150);
+    motors.left();
+    delay(700);
+
+    motors.stop();
+    delay(500);
 
     // Avanza Y
+    motors.setSpeed(110);
+    motors.forward();
+    delay(500);
 
-    /// Gira der
+    motors.stop();
+    delay(500);
+
+    /// Gira izq
+    motors.setSpeed(150);
+    motors.left();
+    delay(700);
+
+
+    motors.stop();
+    delay(500);
 
     // Avanza X
+    motors.setSpeed(110);
+    motors.forward();
+    delay(300);
+
+
+    motors.stop();
+    delay(500);
+
+
+
+    // Gira der
+    motors.setSpeed(150);
+    motors.right();
+    delay(500);
+
+    motors.stop();
+    delay(500);
+
+
   }
   delay(50);
 }

@@ -119,6 +119,9 @@ void MotorDriver::applySpeed()
 void MotorDriver::setSpeed(int speed)
 {
     currentSpeed = constrain(speed, 0, 150);
+
+    analogWrite(ena, constrain(currentSpeed, 0, 150));
+    analogWrite(enb, constrain(currentSpeed + 30, 0, 150));
 }
 
 // Movimiento
@@ -134,9 +137,6 @@ void MotorDriver::forward()
     digitalWrite(in2, LOW);
     digitalWrite(in3, LOW);
     digitalWrite(in4, HIGH);
-
-    analogWrite(ena, constrain(currentSpeed, 0, 150));
-    analogWrite(enb, constrain(currentSpeed+30, 0, 150));
 }
 
 void MotorDriver::backward()
@@ -166,20 +166,20 @@ void MotorDriver::right()
 {
     isCorrectionActive = false;
 
-    digitalWrite(in1, LOW);
+    digitalWrite(in1, HIGH);
     digitalWrite(in2, LOW);
     digitalWrite(in3, LOW);
-    digitalWrite(in4, HIGH);
+    digitalWrite(in4, LOW);
 }
 
 void MotorDriver::left()
 {
     isCorrectionActive = false;
 
-    digitalWrite(in1, HIGH);
+    digitalWrite(in1, LOW);
     digitalWrite(in2, LOW);
     digitalWrite(in3, LOW);
-    digitalWrite(in4, LOW);
+    digitalWrite(in4, HIGH);
 }
 
 void MotorDriver::spin()
