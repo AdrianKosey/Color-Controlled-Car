@@ -105,8 +105,8 @@ void MotorDriver::applySpeed() {
         speedB = currentSpeed;
     }
 
-    analogWrite(ena, constrain(speedA, 0, 150));
-    analogWrite(enb, constrain(speedB, 0, 150));
+    analogWrite(ena, constrain(speedA, 0, 120));
+    analogWrite(enb, constrain(speedB, 0, 120));
 }
 
 void MotorDriver::setSpeed(int speed)

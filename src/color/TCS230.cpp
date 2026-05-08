@@ -11,25 +11,15 @@ void TCS230::begin()
     pinMode(S2, OUTPUT);
     pinMode(S3, OUTPUT);
     pinMode(OUT, INPUT);
-    digitalWrite(S0,LOW);
-    digitalWrite(S1,HIGH);
+    digitalWrite(S0, LOW);
+    digitalWrite(S1, HIGH);
 
-
-    colors[0] = {21, 72, 59, true};    // Rojo
-    colors[1] = {41, 25, 35, true};    // Verde
-    colors[2] = {48, 30, 21, true};    // Azul
-    colors[3] = {16, 28, 52, true};    // Amarillo
-    colors[4] = {18, 20, 17, true};    // Blanco
-    colors[5] = {190, 220, 180, true}; // Negro
-
-
-    colors[0] = {34,112, 91, true};    // Rojo
-    colors[1] = {170, 100, 115, true};    // Verde
-    colors[2] = {150, 145, 90, true};    // Azul
-    colors[3] = {24, 40, 68, true};    // Amarillo
-    colors[4] = {30, 34, 30, true};    // Blanco
-    colors[5] = {160, 190, 162, true}; // Negro
-
+    colors[0] = {49, 140, 120, true};  // Rojo
+    colors[1] = {151, 73, 86, true};   // Verde
+    colors[2] = {172, 157, 99, true};  // Azul
+    colors[3] = {20, 33, 62, true};    // Amarillo
+    colors[4] = {20, 22, 18, true};    // Blanco
+    colors[5] = {190, 208, 173, true}; // Negro
 }
 
 int TCS230::getRed()
@@ -84,9 +74,9 @@ ColorSample TCS230::readRGB()
     c.b = getBlue();
 
     Serial.print("R: ");
-    Serial.println(c.r );
+    Serial.println(c.r);
     Serial.print("G: ");
-    Serial.println(c.g);    
+    Serial.println(c.g);
     Serial.print("B: ");
     Serial.println(c.b);
 
@@ -115,49 +105,9 @@ void TCS230::calibrateColor(uint8_t id)
     colors[id].calibrated = true;
 }
 
-
-ColorSample TCS230::readNormalizedRGB()
-{
-    // 1. Obtener valores crudos (periodos)
-    // Nota: Si un canal da 0, pulseIn falló (timeout)
-    float r = getRed();
-    float g = getGreen();
-    float b = getBlue();
-
-    // 2. Convertir Periodo -> Frecuencia (Intensidad)
-    // Al usar 1.0/x, el color con más presencia ahora tendrá el valor más alto
-    if (r == 0)
-        r = 1; // Evitar división por cero
-    if (g == 0)
-        g = 1;
-    if (b == 0)
-        b = 1;
-
-    float invR = 1000.0 / r;
-    float invG = 1000.0 / g;
-    float invB = 1000.0 / b;
-
-    float sum = invR + invG + invB;
-
-    ColorSample c;
-    if (sum == 0)
-    {
-        c.r = c.g = c.b = 0;
-        return c;
-    }
-
-    // 3. Normalizar (Valores de 0.0 a 1.0)
-    c.r = invR / sum;
-    c.g = invG / sum;
-    c.b = invB / sum;
-
-    return c;
-}
-
 int TCS230::detectColor()
 {
     ColorSample current = readRGB();
-    // ColorSample current = readNormalizedRGB(); basura
     int best = -1;
     long minError = 100000;
 

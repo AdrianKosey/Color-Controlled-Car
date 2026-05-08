@@ -21,22 +21,13 @@ const char *InterfaceUI::colorMenu[7] = {
 
 const char *actionNames[6] =
     {
-        "Avanzar",
-        "Retroceder",
         "Derecha",
+        "CambiarV",
         "Izquierda",
+        "CambiarV",
+        "Adelante"
         "Detener",
-        "Rotar"};
-
-// NO NEEDED BECAUSE RobotActions is an ENUM
-// RobotAction colorActions[6] =
-//     {
-//         ACTION_FORWARD,
-//         ACTION_BACKWARD,
-//         ACTION_RIGHT,
-//         ACTION_LEFT,
-//         ACTION_STOP,
-//         ACTION_SPIN};
+};
 
 InterfaceUI::InterfaceUI(Adafruit_SSD1306 &oled, ButtonUI &btn, TCS230 &colorSensor, MotorDriver &motor, Ultrasonic &ultrasonic)
     : button(btn), display(oled), sensor(colorSensor), motors(motor), ultrasonic(ultrasonic)
@@ -53,7 +44,7 @@ InterfaceUI::InterfaceUI(Adafruit_SSD1306 &oled, ButtonUI &btn, TCS230 &colorSen
     historyIdx = 0;
     motorModeInitialized = false;
     for (int i = 0; i < 128; i++)
-        gyroHistory[i] = 0;
+        gyroHistory[i] = 0;    
 }
 
 void InterfaceUI::begin()
@@ -97,7 +88,7 @@ void InterfaceUI::update()
 
             motors.stop();
             motors.resetHeading();
-            motors.setSpeed(200);
+            motors.setSpeed(100);
             lastColorRead = millis();
 
             actionInProgress = false;
@@ -121,9 +112,17 @@ void InterfaceUI::update()
                 lastColorRead = millis();
                 int color = sensor.detectColor();
 
+                // TESTING
+                Serial.print("Color: ");
+                Serial.println(color);
+
                 if (color != -1)
                 {
                     currentColor = color;
+
+                    Serial.println(colorMenu[currentColor]);
+                    Serial.println(actionNames[currentColor]);
+
                     currentAction = (RobotAction)color;
                     if (currentAction == ACTION_FORWARD)
                     {
@@ -136,7 +135,6 @@ void InterfaceUI::update()
                         actionStartTime = millis(); // Iniciamos temporizador
                         actionInProgress = true;    // Bloqueamos hasta que pase el tiempo
                     }
-
                     lastColorSample = sensor.readRGB();
                     needsRedraw = true;
                 }
@@ -194,7 +192,7 @@ void InterfaceUI::update()
 
             motors.stop();
             motors.resetHeading();
-            motors.setSpeed(200);
+            motors.setSpeed(100);
             motors.forward();
 
             motorTimer = millis();
@@ -469,12 +467,6 @@ void InterfaceUI::executeAction(RobotAction action)
     {
     case ACTION_FORWARD:
         motors.forward();
-
-        break;
-
-    case ACTION_BACKWARD:
-        motors.backward();
-        // delay(2000);
         break;
 
     case ACTION_RIGHT:
@@ -489,12 +481,14 @@ void InterfaceUI::executeAction(RobotAction action)
 
     case ACTION_STOP:
         motors.stop();
-        // delay(2000);
+        delay(2000);
         break;
 
-    case ACTION_SPIN:
-        motors.spin();
-        // delay(2000);
+    case ACTION_BACKWARD:
+    case ACTION_TOGGLE:
+        motorIsFast = !motorIsFast;
+        motors.setSpeed(motorIsFast ? 200 : 120);
+
         break;
     }
 }
