@@ -100,9 +100,9 @@ void InterfaceUI::update()
             if (millis() - actionStartTime >= ACTION_DURATION)
             {
                 actionInProgress = false;
-                // Opcional: Si quieres que se detenga al terminar los 2s:
-                // motors.stop();
-            }
+                motors.setSpeed(75);
+                motors.stop();
+            } 
         }
 
         else
@@ -110,14 +110,8 @@ void InterfaceUI::update()
             if (millis() - lastColorRead > 100)
             {
                 lastColorRead = millis();
+                // Lee sensor y detecta cambio
                 int color = sensor.detectColor();
-
-                // TESTING
-                Serial.print("Color: ");
-                Serial.println(color);
-
-                Serial.println(colorMenu[color]);
-                Serial.println(actionNames[color]);
 
                 // Si es el mismo color, nada que hacer
                 if (currentColor == color)
@@ -128,19 +122,24 @@ void InterfaceUI::update()
                     // Detener motores y mapear 100 veces colores
                     motors.stop();
                     float bestColor = 0;
-                    for (int i = 0; i < 100; i++)                    
+                    for (int i = 0; i < 100; i++)
                     {
                         bestColor += sensor.detectColor();
                     }
                     bestColor /= 100.0;
                     bestColor = round(bestColor);
 
-                    
 
-                    currentColor = (int) bestColor;
+                    currentColor = (int)bestColor;
+                    // TESTING
+                    Serial.print("Color: ");
+                    Serial.println(currentColor);
+
+                    Serial.println(colorMenu[currentColor]);
+                    Serial.println(actionNames[currentColor]);
 
                     currentAction = (RobotAction)color;
-                    if (currentAction == ACTION_FORWARD || currentAction == ACTION_TOGGLEV)
+                    if (currentAction == ACTION_FORWARD)
                     {
                         executeAction(currentAction);
                         actionInProgress = false; // No bloqueamos
@@ -162,6 +161,7 @@ void InterfaceUI::update()
                 }
 
                 needsRedraw = true;
+                Serial.println(motors.getSpeed());
             }
         }
     }
@@ -502,12 +502,12 @@ void InterfaceUI::executeAction(RobotAction action)
 
     case ACTION_BACKWARD:
         motors.spin();
-        break;    
+        break;
 
     case ACTION_TOGGLEV:
         motorIsFast = !motorIsFast;
-        motors.setSpeed(motorIsFast ? 100 : 75);
-
+        motors.setSpeed(motorIsFast ? 120 : 75);
+        motors.forward();
         break;
     }
 }

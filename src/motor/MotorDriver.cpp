@@ -14,6 +14,10 @@ MotorDriver::MotorDriver(int in1, int in2, int in3, int in4, int ena, int enb)
     lastTime = millis();
 }
 
+int MotorDriver::getSpeed()
+{
+    return currentSpeed;
+}
 void MotorDriver::begin()
 {
     pinMode(in1, OUTPUT);
@@ -92,14 +96,15 @@ void MotorDriver::setSpeed(int speed)
 
 // Movimiento
 // Arrancar motor
-void MotorDriver::startUp(){   
+void MotorDriver::startUp()
+{
     int normalSpeed = currentSpeed;
 
-    setSpeed(140);  // High speed to initialize motors
+    setSpeed(150); // High speed to initialize motors
     applySpeed();
     delay(50);
 
-    setSpeed(normalSpeed);    
+    setSpeed(normalSpeed);
     applySpeed();
 }
 
@@ -111,7 +116,6 @@ void MotorDriver::forward()
     digitalWrite(in4, HIGH);
 
     startUp();
-
 }
 
 void MotorDriver::backward()
@@ -135,10 +139,6 @@ void MotorDriver::stop()
 
     analogWrite(ena, 0);
     analogWrite(enb, 0);
-
-    // Como es giro, necesita algo más de potencia
-    setSpeed(110);
-    applySpeed();
 }
 
 void MotorDriver::right()
@@ -175,6 +175,9 @@ void MotorDriver::spin()
     digitalWrite(in2, LOW);
     digitalWrite(in3, HIGH);
     digitalWrite(in4, LOW);
-    
-    startUp();  
+
+    startUp();
+    // Como es giro, necesita algo más de potencia
+    setSpeed(110);
+    applySpeed();
 }

@@ -20,7 +20,7 @@ class MotorDriver {
 
   public:
     MotorDriver(int in1, int in2, int in3, int in4, int ena, int enb);
-    
+    int getSpeed();
     void begin();
     
     void setSpeed(int speed);
