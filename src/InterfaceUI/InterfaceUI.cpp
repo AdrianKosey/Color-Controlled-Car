@@ -1,4 +1,5 @@
 #include "InterfaceUI.h"
+#include "math.h"
 
 const InterfaceUI::MenuItem InterfaceUI::menuItems[] = {
     {"Iniciar Recorrido", UI_START},
@@ -44,7 +45,7 @@ InterfaceUI::InterfaceUI(Adafruit_SSD1306 &oled, ButtonUI &btn, TCS230 &colorSen
     historyIdx = 0;
     motorModeInitialized = false;
     for (int i = 0; i < 128; i++)
-        gyroHistory[i] = 0;    
+        gyroHistory[i] = 0;
 }
 
 void InterfaceUI::begin()
@@ -63,8 +64,6 @@ void InterfaceUI::begin()
 
 void InterfaceUI::update()
 {
-
-    motors.update();
     ButtonEvent evt = button.handleButton();
     if (currentState == UI_MENU)
     {
@@ -88,7 +87,8 @@ void InterfaceUI::update()
 
             motors.stop();
             motors.resetHeading();
-            motors.setSpeed(100);
+            // 60 works good with full battery
+            motors.setSpeed(75);
             lastColorRead = millis();
 
             actionInProgress = false;
@@ -116,15 +116,31 @@ void InterfaceUI::update()
                 Serial.print("Color: ");
                 Serial.println(color);
 
+                Serial.println(colorMenu[color]);
+                Serial.println(actionNames[color]);
+
+                // Si es el mismo color, nada que hacer
+                if (currentColor == color)
+                    return;
+
                 if (color != -1)
                 {
-                    currentColor = color;
+                    // Detener motores y mapear 100 veces colores
+                    motors.stop();
+                    float bestColor = 0;
+                    for (int i = 0; i < 100; i++)                    
+                    {
+                        bestColor += sensor.detectColor();
+                    }
+                    bestColor /= 100.0;
+                    bestColor = round(bestColor);
 
-                    Serial.println(colorMenu[currentColor]);
-                    Serial.println(actionNames[currentColor]);
+                    
+
+                    currentColor = (int) bestColor;
 
                     currentAction = (RobotAction)color;
-                    if (currentAction == ACTION_FORWARD)
+                    if (currentAction == ACTION_FORWARD || currentAction == ACTION_TOGGLEV)
                     {
                         executeAction(currentAction);
                         actionInProgress = false; // No bloqueamos
@@ -192,7 +208,7 @@ void InterfaceUI::update()
 
             motors.stop();
             motors.resetHeading();
-            motors.setSpeed(100);
+            motors.setSpeed(75);
             motors.forward();
 
             motorTimer = millis();
@@ -481,13 +497,16 @@ void InterfaceUI::executeAction(RobotAction action)
 
     case ACTION_STOP:
         motors.stop();
-        delay(2000);
+        delay(5000);
         break;
 
     case ACTION_BACKWARD:
-    case ACTION_TOGGLE:
+        motors.spin();
+        break;    
+
+    case ACTION_TOGGLEV:
         motorIsFast = !motorIsFast;
-        motors.setSpeed(motorIsFast ? 200 : 120);
+        motors.setSpeed(motorIsFast ? 100 : 75);
 
         break;
     }

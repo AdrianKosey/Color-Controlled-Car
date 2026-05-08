@@ -14,7 +14,6 @@ class MotorDriver {
     float currentHeading;   // anngulo actual
     unsigned long lastTime;
     float kp, kd;
-    bool isCorrectionActive;
     float gyroBiasZ = 0;
     void updateHeading(); // velocidad y
     void applySpeed(); 
@@ -32,12 +31,12 @@ class MotorDriver {
     void right();
     void left();
     void stop();
-    void spin();
-    void update();
+    void spin();    
     float getHeading();
     float getGyroZ();
     void resetHeading();
     void calibrateGyro();
+    void startUp();
 };
 
 #endif

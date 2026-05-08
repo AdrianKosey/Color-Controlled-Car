@@ -20,7 +20,7 @@ enum UIState
 enum RobotAction
 {
     ACTION_RIGHT,    // Rojo
-    ACTION_TOGGLE,   // Verde y Amarillo
+    ACTION_TOGGLEV,   // Verde y Amarillo
     ACTION_LEFT,     // Azul
     ACTION_BACKWARD, // Amarillo
     ACTION_FORWARD,  // Blanco
@@ -42,7 +42,7 @@ private:
 
     bool actionInProgress = false;
     unsigned long actionStartTime = 0;
-    const unsigned long ACTION_DURATION = 1200; // 1.5 segundos
+    const unsigned long ACTION_DURATION = 2000; // 2 segundo
 
     struct MenuItem
     {

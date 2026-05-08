@@ -51,5 +51,5 @@ void loop()
 
     delay(500);*/
   interfaceUI.update();
-  delay(100);
+  delay(10);
 }

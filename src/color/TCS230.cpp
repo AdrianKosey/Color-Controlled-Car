@@ -14,12 +14,12 @@ void TCS230::begin()
     digitalWrite(S0, LOW);
     digitalWrite(S1, HIGH);
 
-    colors[0] = {49, 140, 120, true};  // Rojo
-    colors[1] = {151, 73, 86, true};   // Verde
-    colors[2] = {172, 157, 99, true};  // Azul
-    colors[3] = {20, 33, 62, true};    // Amarillo
+    colors[0] = {26, 119, 89, true};   // Rojo
+    colors[1] = {151, 76, 88, true};   // Verde
+    colors[2] = {162, 142, 85, true};  // Azul
+    colors[3] = {19, 32, 62, true};    // Amarillo
     colors[4] = {20, 22, 18, true};    // Blanco
-    colors[5] = {190, 208, 173, true}; // Negro
+    colors[5] = {190, 209, 173, true}; // Negro
 }
 
 int TCS230::getRed()
@@ -28,12 +28,15 @@ int TCS230::getRed()
     digitalWrite(S2, LOW);
     digitalWrite(S3, LOW);
     // Define integer to represent Pulse Width
-    int PW;
-    // Read the output Pulse Width
-    delayMicroseconds(200);
-    PW = pulseIn(OUT, LOW);
-    // Return the value
-    return PW;
+    long totalPW = 0;
+    for (int i = 0; i < 3; i++)
+    {                                        // Take 3 quick samples
+        noInterrupts();                      // Pause ESP32 background tasks
+        totalPW += pulseIn(OUT, LOW, 20000); // Added a 20ms timeout!
+        interrupts();                        // Resume background tasks
+    }
+
+    return totalPW / 3;
 }
 
 int TCS230::getGreen()
@@ -42,26 +45,30 @@ int TCS230::getGreen()
     digitalWrite(S2, HIGH);
     digitalWrite(S3, HIGH);
     // Define integer to represent Pulse Width
-    int PW;
-    delayMicroseconds(200);
-    // Read the output Pulse Width
-    PW = pulseIn(OUT, LOW);
-    // Return the value
-    return PW;
-}
+    long totalPW = 0;
+    for (int i = 0; i < 3; i++)
+    {                                        // Take 3 quick samples
+        noInterrupts();                      // Pause ESP32 background tasks
+        totalPW += pulseIn(OUT, LOW, 20000); // Added a 20ms timeout!
+        interrupts();                        // Resume background tasks
+    }
 
+    return totalPW / 3;
+}
 int TCS230::getBlue()
 {
     // Set sensor to read Blue only
     digitalWrite(S2, LOW);
     digitalWrite(S3, HIGH);
-    // Define integer to represent Pulse Width
-    int PW;
-    delayMicroseconds(200);
-    // Read the output Pulse Width
-    PW = pulseIn(OUT, LOW);
-    // Return the value
-    return PW;
+    long totalPW = 0;
+    for (int i = 0; i < 3; i++)
+    {                                        // Take 3 quick samples
+        noInterrupts();                      // Pause ESP32 background tasks
+        totalPW += pulseIn(OUT, LOW, 20000); // Added a 20ms timeout!
+        interrupts();                        // Resume background tasks
+    }
+
+    return totalPW / 3;
 }
 
 ColorSample TCS230::readRGB()

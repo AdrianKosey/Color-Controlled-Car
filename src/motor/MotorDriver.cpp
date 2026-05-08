@@ -11,8 +11,6 @@ MotorDriver::MotorDriver(int in1, int in2, int in3, int in4, int ena, int enb)
     kp = 3.0;
     kd = 1.5;
 
-    isCorrectionActive = false;
-
     lastTime = millis();
 }
 
@@ -37,15 +35,18 @@ void MotorDriver::begin()
     calibrateGyro();
 }
 
-void MotorDriver::calibrateGyro(){
+void MotorDriver::calibrateGyro()
+{
     float sum = 0;
-    int samples=200;
-    for(int i = 0; i < samples; i++){
-        sum+= imu.readFloatGyroZ();
+    int samples = 200;
+    for (int i = 0; i < samples; i++)
+    {
+        sum += imu.readFloatGyroZ();
         delay(5);
     }
-    gyroBiasZ = sum/samples;
-    Serial.print("Bias Z:"); Serial.println(gyroBiasZ);
+    gyroBiasZ = sum / samples;
+    Serial.print("Bias Z:");
+    Serial.println(gyroBiasZ);
 }
 
 void MotorDriver::updateHeading()
@@ -54,26 +55,15 @@ void MotorDriver::updateHeading()
     float dt = (currentTime - lastTime) / 1000.0;
     lastTime = currentTime;
 
-    float gyroZ = imu.readFloatGyroZ()-gyroBiasZ;
+    float gyroZ = imu.readFloatGyroZ() - gyroBiasZ;
 
     // sensibilidad
     if (abs(gyroZ) < 5)
     {
-        gyroZ=0;
+        gyroZ = 0;
     }
     currentHeading += gyroZ * dt;
 }
-
-void MotorDriver::update()
-{
-    updateHeading();
-
-    if (isCorrectionActive)
-    {
-        applySpeed();
-    }
-}
-
 
 float MotorDriver::getHeading() { return currentHeading; }
 
@@ -84,29 +74,15 @@ void MotorDriver::resetHeading()
     currentHeading = 0;
 }
 
-void MotorDriver::applySpeed() {
+void MotorDriver::applySpeed()
+{
     int speedA, speedB;
 
-    if (isCorrectionActive) {
+    speedA = currentSpeed;
+    speedB = currentSpeed;
 
-        float error = targetHeading - currentHeading;
-        float gyroZ = imu.readFloatGyroZ();
-
-        int correction = (error * kp) - (gyroZ * kd);
-        correction = constrain(correction, -70, 70);
-
-        int baseSpeed = currentSpeed;
-
-        speedA = baseSpeed - correction;
-        speedB = baseSpeed + correction;
-
-    } else {
-        speedA = currentSpeed;
-        speedB = currentSpeed;
-    }
-
-    analogWrite(ena, constrain(speedA, 0, 120));
-    analogWrite(enb, constrain(speedB, 0, 120));
+    analogWrite(ena, constrain(speedA, 0, 150));
+    analogWrite(enb, constrain(speedB, 0, 150 + 20));
 }
 
 void MotorDriver::setSpeed(int speed)
@@ -115,33 +91,42 @@ void MotorDriver::setSpeed(int speed)
 }
 
 // Movimiento
+// Arrancar motor
+void MotorDriver::startUp(){   
+    int normalSpeed = currentSpeed;
+
+    setSpeed(140);  // High speed to initialize motors
+    applySpeed();
+    delay(50);
+
+    setSpeed(normalSpeed);    
+    applySpeed();
+}
 
 void MotorDriver::forward()
 {
-
-    resetHeading();
-    targetHeading = 0;
-    isCorrectionActive = true;
-
     digitalWrite(in1, HIGH);
     digitalWrite(in2, LOW);
     digitalWrite(in3, LOW);
     digitalWrite(in4, HIGH);
+
+    startUp();
+
 }
 
 void MotorDriver::backward()
 {
-    isCorrectionActive = false;
 
     digitalWrite(in1, LOW);
     digitalWrite(in2, HIGH);
     digitalWrite(in3, HIGH);
     digitalWrite(in4, LOW);
+
+    startUp();
 }
 
 void MotorDriver::stop()
 {
-    isCorrectionActive = false;
 
     digitalWrite(in1, LOW);
     digitalWrite(in2, LOW);
@@ -150,34 +135,46 @@ void MotorDriver::stop()
 
     analogWrite(ena, 0);
     analogWrite(enb, 0);
+
+    // Como es giro, necesita algo más de potencia
+    setSpeed(110);
+    applySpeed();
 }
 
 void MotorDriver::right()
 {
-    isCorrectionActive = false;
-
-    digitalWrite(in1, LOW);
-    digitalWrite(in2, LOW);
-    digitalWrite(in3, LOW);
-    digitalWrite(in4, HIGH);
-}
-
-void MotorDriver::left()
-{
-    isCorrectionActive = false;
 
     digitalWrite(in1, HIGH);
     digitalWrite(in2, LOW);
     digitalWrite(in3, LOW);
     digitalWrite(in4, LOW);
+
+    startUp();
+    // Como es giro, necesita algo más de potencia
+    setSpeed(110);
+    applySpeed();
+}
+
+void MotorDriver::left()
+{
+    digitalWrite(in1, LOW);
+    digitalWrite(in2, LOW);
+    digitalWrite(in3, LOW);
+    digitalWrite(in4, HIGH);
+
+    startUp();
+    // Como es giro, necesita algo más de potencia
+    setSpeed(110);
+    applySpeed();
 }
 
 void MotorDriver::spin()
 {
-    isCorrectionActive = false;
 
     digitalWrite(in1, HIGH);
     digitalWrite(in2, LOW);
     digitalWrite(in3, HIGH);
     digitalWrite(in4, LOW);
+    
+    startUp();  
 }
