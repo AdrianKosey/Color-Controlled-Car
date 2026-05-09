@@ -96,7 +96,6 @@ void InterfaceUI::update()
             motorModeInitialized = true;
 
             motors.stop();
-            motors.resetHeading();
             motors.setSpeed(200);
             lastColorRead = millis();
 
@@ -136,7 +135,6 @@ void InterfaceUI::update()
                         actionStartTime = millis(); // Iniciamos temporizador
                         actionInProgress = true;    // Bloqueamos hasta que pase el tiempo
                     }
-
                     lastColorSample = sensor.readRGB();
                     needsRedraw = true;
                 }
@@ -193,7 +191,6 @@ void InterfaceUI::update()
             motorModeInitialized = true;
 
             motors.stop();
-            motors.resetHeading();
             motors.setSpeed(200);
             motors.forward();
 
@@ -216,27 +213,6 @@ void InterfaceUI::update()
     }
     else if (currentState == UI_VIEW_GIROSCOPIO)
     {
-        // Valor eje z
-        float gz = motors.getGyroZ();
-
-        // mapeamos
-        // valor 0 centrado
-        int8_t mappedValue = (int8_t)constrain(gz / 4, -15, 15);
-
-        gyroHistory[historyIdx] = mappedValue;
-        historyIdx = (historyIdx + 1) % 128; // Buffer circular
-
-        // redibujo
-        needsRedraw = true;
-
-        if (evt == ButtonEvent::SHORT_PRESS)
-        {
-            motors.resetHeading();
-        }
-        else if (evt == ButtonEvent::LONG_PRESS)
-        {
-            currentState = UI_MENU;
-        }
     }
     else
     {
@@ -365,30 +341,6 @@ void InterfaceUI::drawCurrentScreen()
         break;
         case UI_VIEW_GIROSCOPIO:
         {
-            display.setCursor(0, 0);
-            display.println("--- MONITOR GYRO ---");
-
-            // Linea base
-            display.drawFastHLine(0, 45, 128, SSD1306_WHITE);
-
-            // onda
-            for (int x = 0; x < 127; x++)
-            {
-                // indices para el punto actual y el siguiente
-                uint8_t i1 = (historyIdx + x) % 128;
-                uint8_t i2 = (historyIdx + x + 1) % 128;
-
-                // linea entre cada punto
-                display.drawLine(
-                    x, 45 - gyroHistory[i1],
-                    x + 1, 45 - gyroHistory[i2],
-                    SSD1306_WHITE);
-            }
-
-            display.setCursor(0, 12);
-            display.print("Z: ");
-            display.print(motors.getHeading(), 1); // angulo acumulado
-            display.println(" deg");
         }
         break;
 
@@ -405,13 +357,11 @@ void InterfaceUI::drawCurrentScreen()
             // Heading actual
             display.setCursor(0, 24);
             display.print("Heading: ");
-            display.print(motors.getHeading(), 1);
             display.println(" deg");
 
             // Velocidad angular
             display.setCursor(0, 36);
             display.print("Gyro Z: ");
-            display.print(motors.getGyroZ(), 1);
             display.setCursor(0, 52);
             display.print("Long: Salir");
 

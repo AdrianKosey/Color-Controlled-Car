@@ -1,19 +1,9 @@
 #include "MotorDriver.h"
 
 MotorDriver::MotorDriver(int in1, int in2, int in3, int in4, int ena, int enb)
-    : in1(in1), in2(in2), in3(in3), in4(in4), ena(ena), enb(enb), imu(I2C_MODE, 0x6A)
+    : in1(in1), in2(in2), in3(in3), in4(in4), ena(ena), enb(enb)
 {
     currentSpeed = 0;
-
-    currentHeading = 0;
-    targetHeading = 0;
-
-    kp = 3.0;
-    kd = 1.5;
-
-    isCorrectionActive = false;
-
-    lastTime = millis();
 }
 
 void MotorDriver::begin()
@@ -25,95 +15,7 @@ void MotorDriver::begin()
     pinMode(ena, OUTPUT);
     pinMode(enb, OUTPUT);
 
-    Wire.begin();
-
-    if (imu.begin() != 0)
-    {
-        Serial.println("Error: LSM6DS3 no detectado.");
-    }
-
-    lastTime = millis();
     stop();
-    calibrateGyro();
-}
-
-void MotorDriver::calibrateGyro()
-{
-    float sum = 0;
-    int samples = 200;
-    for (int i = 0; i < samples; i++)
-    {
-        sum += imu.readFloatGyroZ();
-        delay(5);
-    }
-    gyroBiasZ = sum / samples;
-    Serial.print("Bias Z:");
-    Serial.println(gyroBiasZ);
-}
-
-void MotorDriver::updateHeading()
-{
-    unsigned long currentTime = millis();
-    float dt = (currentTime - lastTime) / 1000.0;
-    lastTime = currentTime;
-
-    float gyroZ = imu.readFloatGyroZ() - gyroBiasZ;
-
-    // sensibilidad
-    if (abs(gyroZ) < 5)
-    {
-        gyroZ = 0;
-    }
-    currentHeading += gyroZ * dt;
-}
-
-void MotorDriver::update()
-{
-    updateHeading();
-
-    if (isCorrectionActive)
-    {
-        applySpeed();
-    }
-}
-
-float MotorDriver::getHeading() { return currentHeading; }
-
-float MotorDriver::getGyroZ() { return imu.readFloatGyroZ(); }
-
-void MotorDriver::resetHeading()
-{
-    currentHeading = 0;
-}
-
-void MotorDriver::applySpeed()
-{
-    int speedA, speedB;
-
-    // TESTING
-    isCorrectionActive = false;
-    if (isCorrectionActive)
-    {
-
-        float error = targetHeading - currentHeading;
-        float gyroZ = imu.readFloatGyroZ();
-
-        int correction = (error * kp) - (gyroZ * kd);
-        correction = constrain(correction, -70, 70);
-
-        int baseSpeed = currentSpeed;
-
-        speedA = baseSpeed - correction;
-        speedB = baseSpeed + correction;
-    }
-    else
-    {
-        speedA = currentSpeed;
-        speedB = currentSpeed;
-    }
-
-    analogWrite(ena, constrain(speedA, 0, 150));
-    analogWrite(enb, constrain(speedB, 0, 150));
 }
 
 void MotorDriver::setSpeed(int speed)
@@ -129,10 +31,6 @@ void MotorDriver::setSpeed(int speed)
 void MotorDriver::forward()
 {
 
-    resetHeading();
-    targetHeading = 0;
-    isCorrectionActive = true;
-
     digitalWrite(in1, HIGH);
     digitalWrite(in2, LOW);
     digitalWrite(in3, LOW);
@@ -141,8 +39,6 @@ void MotorDriver::forward()
 
 void MotorDriver::backward()
 {
-    isCorrectionActive = false;
-
     digitalWrite(in1, LOW);
     digitalWrite(in2, HIGH);
     digitalWrite(in3, HIGH);
@@ -151,8 +47,6 @@ void MotorDriver::backward()
 
 void MotorDriver::stop()
 {
-    isCorrectionActive = false;
-
     digitalWrite(in1, LOW);
     digitalWrite(in2, LOW);
     digitalWrite(in3, LOW);
@@ -164,7 +58,6 @@ void MotorDriver::stop()
 
 void MotorDriver::right()
 {
-    isCorrectionActive = false;
 
     digitalWrite(in1, HIGH);
     digitalWrite(in2, LOW);
@@ -174,7 +67,6 @@ void MotorDriver::right()
 
 void MotorDriver::left()
 {
-    isCorrectionActive = false;
 
     digitalWrite(in1, LOW);
     digitalWrite(in2, LOW);
@@ -184,7 +76,6 @@ void MotorDriver::left()
 
 void MotorDriver::spin()
 {
-    isCorrectionActive = false;
 
     digitalWrite(in1, HIGH);
     digitalWrite(in2, LOW);

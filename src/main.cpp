@@ -5,6 +5,7 @@
 #include "config/default.h"
 #include "motor/MotorDriver.h"
 #include "ultrasonic/Ultrasonic.h"
+#include "Adafruit_LSM6DS3.h"
 // OLED
 TCS230 sensorColor(S0, S1, S2, S3, SENSOR_OUT);
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
