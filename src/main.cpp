@@ -5,7 +5,7 @@
 #include "config/default.h"
 #include "motor/MotorDriver.h"
 #include "ultrasonic/Ultrasonic.h"
-#include <Arduino_LSM6DS3.h>
+
 // OLED
 TCS230 sensorColor(S0, S1, S2, S3, SENSOR_OUT);
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
@@ -27,18 +27,18 @@ void setup()
 
   Serial.println("Starting");
 
-  if (!IMU.begin())
-  {
-    Serial.println("Failed to initialize IMU!");
+  // if (!IMU.begin())
+  // {
+  //   Serial.println("Failed to initialize IMU!");
 
-  }
+  // }
 
-  Serial.print("Gyroscope sample rate = ");
-  Serial.print(IMU.gyroscopeSampleRate());
-  Serial.println(" Hz");
-  Serial.println();
-  Serial.println("Gyroscope in degrees/second");
-  Serial.println("X\tY\tZ");
+  // Serial.print("Gyroscope sample rate = ");
+  // Serial.print(IMU.gyroscopeSampleRate());
+  // Serial.println(" Hz");
+  // Serial.println();
+  // Serial.println("Gyroscope in degrees/second");
+  // Serial.println("X\tY\tZ");
 
   // El motor empieza hacia adelante
   motors.setSpeed(95);
@@ -46,41 +46,46 @@ void setup()
 
 }
 
-float anguloAcumulado = 0;
-unsigned long tiempoPrevio = 0;
-
-
 void loop() {
-  float gx, gy, gz;
 
-  // Esperar a que haya datos del giroscopio disponibles
-  if (IMU.gyroscopeAvailable()) {
-    IMU.readGyroscope(gx, gy, gz);
 
-    unsigned long tiempoActual = millis();
-    float tiempoDelta = (tiempoActual - tiempoPrevio) / 1000.0; // en segundos
-    tiempoPrevio = tiempoActual;
+  motors.forward();
+  delay(500);
 
-    // Asumimos que el giro es sobre el eje Z (en grados por segundo)
-    float velocidadAngular = gz; 
-    
-    // Filtro simple para ignorar el ruido cerca de 0
-    if (abs(velocidadAngular) > 0.5) { 
-      anguloAcumulado += velocidadAngular * tiempoDelta;
-    }
+  motors.rotateDegreesCW(90);
+  delay(1000);
 
-    // Ejecutar giro a la derecha
-    motors.right();
+  motors.forward();
+  delay(1000);
 
-    // Detenerse al llegar a 90 grados (-16 por inercia)
-    if (abs(anguloAcumulado) >= 74.0) {
-      motors.stop();
-      delay (1000);
-      anguloAcumulado = 0;
-      tiempoPrevio = 0;
-      motors.forward();
-      motors.setSpeed(95);
-      delay(10);
-    }
-  }
+  motors.rotateDegreesCW(120);
+  delay(1000);
+
+  motors.forward();
+  delay(500);
+
+  motors.rotateDegreesCW(150);
+  delay(1000);
+
+  motors.forward();
+  delay(1000);
+
+
+  motors.stop();
+  delay(100);
+  motors.rotateDegreesCCW(180);
+  delay(1000);
+
+  motors.forward();
+  delay(1000);
+
+  motors.rotateDegreesCW(135);
+  delay(1000);
+
+  motors.forward();
+  delay(500);
+
+  motors.rotateDegreesCW(45);
+  delay(1000);
+  
 }

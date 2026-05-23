@@ -37,7 +37,7 @@ void MotorDriver::setSpeed(int speed)
     currentSpeed = constrain(speed, 0, 150);
 
     analogWrite(ena, constrain(currentSpeed, 0, 150));
-    analogWrite(enb, constrain(currentSpeed + 30, 0, 150));
+    analogWrite(enb, constrain(currentSpeed + 27, 0, 150));
 }
 
 // Movimiento
@@ -49,6 +49,12 @@ void MotorDriver::forward()
     digitalWrite(in2, LOW);
     digitalWrite(in3, LOW);
     digitalWrite(in4, HIGH);
+
+    // Briefly set high speed
+    oldSpeed = currentSpeed;
+    setSpeed(130);
+    delay(10);
+    setSpeed(oldSpeed);
 }
 
 void MotorDriver::backward()
@@ -66,17 +72,19 @@ void MotorDriver::stop()
     digitalWrite(in3, LOW);
     digitalWrite(in4, LOW);
 
-    analogWrite(ena, 0);
-    analogWrite(enb, 0);
+    // analogWrite(ena, 0);
+    // analogWrite(enb, 0);
 }
 
 void MotorDriver::right()
 {
+    oldSpeed = currentSpeed;
+    setSpeed(120);
 
     anguloAcumulado = 0;
-    tiempoPrevio = 0;
+    tiempoPrevio = micros();
 
-    while (abs(anguloAcumulado <= 90 - ANGLE_FIX))
+    while (1)
     {
 
         // Esperar a que haya datos del giroscopio disponibles
@@ -84,8 +92,8 @@ void MotorDriver::right()
         {
             IMU.readGyroscope(gx, gy, gz);
 
-            unsigned long tiempoActual = millis();
-            float tiempoDelta = (tiempoActual - tiempoPrevio) / 1000.0; // en segundos
+            unsigned long tiempoActual = micros();
+            float tiempoDelta = (tiempoActual - tiempoPrevio) / 1000000.0;
             tiempoPrevio = tiempoActual;
 
             // Asumimos que el giro es sobre el eje Z (en grados por segundo)
@@ -97,13 +105,21 @@ void MotorDriver::right()
                 anguloAcumulado += velocidadAngular * tiempoDelta;
             }
 
+            if (abs(anguloAcumulado) >= 90 - ANGLE_FIX)
+                break;
+
             // Ejecutar giro a la derecha
             digitalWrite(in1, HIGH);
             digitalWrite(in2, LOW);
             digitalWrite(in3, LOW);
             digitalWrite(in4, LOW);
+
+            Serial.println(anguloAcumulado);
         }
     }
+
+    setSpeed(oldSpeed);
+    stop();
 }
 
 void MotorDriver::left()
@@ -122,4 +138,94 @@ void MotorDriver::spin()
     digitalWrite(in2, LOW);
     digitalWrite(in3, HIGH);
     digitalWrite(in4, LOW);
+}
+
+void MotorDriver::rotateDegreesCW(int degrees)
+{
+    oldSpeed = currentSpeed;
+    setSpeed(115);
+
+    anguloAcumulado = 0;
+    tiempoPrevio = micros();
+
+    while (1)
+    {
+
+        // Esperar a que haya datos del giroscopio disponibles
+        if (IMU.gyroscopeAvailable())
+        {
+            IMU.readGyroscope(gx, gy, gz);
+
+            unsigned long tiempoActual = micros();
+            float tiempoDelta = (tiempoActual - tiempoPrevio) / 1000000.0;
+            tiempoPrevio = tiempoActual;
+
+            // Asumimos que el giro es sobre el eje Z (en grados por segundo)
+            float velocidadAngular = gz;
+
+            // Filtro simple para ignorar el ruido cerca de 0
+            if (abs(velocidadAngular) > 0.5)
+            {
+                anguloAcumulado += velocidadAngular * tiempoDelta;
+            }
+
+            if (abs(anguloAcumulado) >= degrees - ANGLE_FIX)
+                break;
+
+            // Ejecutar giro a la derecha
+            digitalWrite(in1, HIGH);
+            digitalWrite(in2, LOW);
+            digitalWrite(in3, LOW);
+            digitalWrite(in4, LOW);
+
+        }
+    }
+
+    setSpeed(oldSpeed);
+    stop();
+}
+
+void MotorDriver::rotateDegreesCCW(int degrees)
+{
+    oldSpeed = currentSpeed;
+    setSpeed(115);
+
+    anguloAcumulado = 0;
+    tiempoPrevio = micros();
+
+    while (1)
+    {
+
+        // Esperar a que haya datos del giroscopio disponibles
+        if (IMU.gyroscopeAvailable())
+        {
+            IMU.readGyroscope(gx, gy, gz);
+
+            unsigned long tiempoActual = micros();
+            float tiempoDelta = (tiempoActual - tiempoPrevio) / 1000000.0;
+            tiempoPrevio = tiempoActual;
+
+            // Asumimos que el giro es sobre el eje Z (en grados por segundo)
+            float velocidadAngular = gz;
+
+            // Filtro simple para ignorar el ruido cerca de 0
+            if (abs(velocidadAngular) > 0.5)
+            {
+                anguloAcumulado += velocidadAngular * tiempoDelta;
+            }
+
+            if (abs(anguloAcumulado) >= degrees - ANGLE_FIX * 2)
+                break;
+
+            // Ejecutar giro a la izquierda
+            digitalWrite(in1, LOW);
+            digitalWrite(in2, LOW);
+            digitalWrite(in3, LOW);
+            digitalWrite(in4, HIGH);
+
+        }
+    }
+
+    setSpeed(oldSpeed);
+    stop();
 }

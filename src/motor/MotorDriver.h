@@ -10,6 +10,7 @@ class MotorDriver
 private:
   int in1, in2, in3, in4, ena, enb;
   int currentSpeed;
+  int oldSpeed;
   void applySpeed();
 
   // Turn with Osciloscope
@@ -18,7 +19,7 @@ private:
   float gx, gy, gz;
 
   // Restado a angulos contemplando inercia
-  const int ANGLE_FIX = 16;
+  const int ANGLE_FIX = 17;
 
 public:
   MotorDriver(int in1, int in2, int in3, int in4, int ena, int enb);
@@ -35,6 +36,9 @@ public:
   void stop();
   void spin();
   void update();
+  
+  void rotateDegreesCW(int);
+  void rotateDegreesCCW(int);
 };
 
 #endif
