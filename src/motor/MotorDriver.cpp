@@ -15,6 +15,20 @@ void MotorDriver::begin()
     pinMode(ena, OUTPUT);
     pinMode(enb, OUTPUT);
 
+    // Start giroscope
+
+    if (!IMU.begin())
+    {
+        Serial.println("Failed to initialize IMU!");
+    }
+
+    Serial.print("Gyroscope sample rate = ");
+    Serial.print(IMU.gyroscopeSampleRate());
+    Serial.println(" Hz");
+
+    anguloAcumulado = 0;
+    tiempoPrevio = 0;
+
     stop();
 }
 
@@ -59,10 +73,37 @@ void MotorDriver::stop()
 void MotorDriver::right()
 {
 
-    digitalWrite(in1, HIGH);
-    digitalWrite(in2, LOW);
-    digitalWrite(in3, LOW);
-    digitalWrite(in4, LOW);
+    anguloAcumulado = 0;
+    tiempoPrevio = 0;
+
+    while (abs(anguloAcumulado <= 90 - ANGLE_FIX))
+    {
+
+        // Esperar a que haya datos del giroscopio disponibles
+        if (IMU.gyroscopeAvailable())
+        {
+            IMU.readGyroscope(gx, gy, gz);
+
+            unsigned long tiempoActual = millis();
+            float tiempoDelta = (tiempoActual - tiempoPrevio) / 1000.0; // en segundos
+            tiempoPrevio = tiempoActual;
+
+            // Asumimos que el giro es sobre el eje Z (en grados por segundo)
+            float velocidadAngular = gz;
+
+            // Filtro simple para ignorar el ruido cerca de 0
+            if (abs(velocidadAngular) > 0.5)
+            {
+                anguloAcumulado += velocidadAngular * tiempoDelta;
+            }
+
+            // Ejecutar giro a la derecha
+            digitalWrite(in1, HIGH);
+            digitalWrite(in2, LOW);
+            digitalWrite(in3, LOW);
+            digitalWrite(in4, LOW);
+        }
+    }
 }
 
 void MotorDriver::left()

@@ -5,7 +5,7 @@
 #include "config/default.h"
 #include "motor/MotorDriver.h"
 #include "ultrasonic/Ultrasonic.h"
-#include "Adafruit_LSM6DS3.h"
+#include <Arduino_LSM6DS3.h>
 // OLED
 TCS230 sensorColor(S0, S1, S2, S3, SENSOR_OUT);
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
@@ -13,7 +13,6 @@ ButtonUI actionButton(BUTTON_UI_PIN);
 MotorDriver motors(HBRIDGE_IN1, HBRIDGE_IN2, HBRIDGE_IN3, HBRIDGE_IN4, 26, 25);
 Ultrasonic ultrasonic(ECHO_PIN, TRIGG_PIN);
 InterfaceUI interfaceUI(display, actionButton, sensorColor, motors, ultrasonic);
-
 
 void setup()
 {
@@ -27,104 +26,61 @@ void setup()
   ultrasonic.begin();
 
   Serial.println("Starting");
-  
+
+  if (!IMU.begin())
+  {
+    Serial.println("Failed to initialize IMU!");
+
+  }
+
+  Serial.print("Gyroscope sample rate = ");
+  Serial.print(IMU.gyroscopeSampleRate());
+  Serial.println(" Hz");
+  Serial.println();
+  Serial.println("Gyroscope in degrees/second");
+  Serial.println("X\tY\tZ");
+
   // El motor empieza hacia adelante
-  motors.setSpeed(100);
+  motors.setSpeed(95);
   motors.forward();
 
 }
 
-void loop()
-{
-  // put your main code here, to run repeatedly:
-  /*digitalWrite(S2, LOW);
-    digitalWrite(S3, LOW);
-    delayMicroseconds(200);
-    Serial.print("R:");
-    Serial.print(pulseIn(SENSOR_OUT, LOW));
+float anguloAcumulado = 0;
+unsigned long tiempoPrevio = 0;
 
-    digitalWrite(S2, HIGH);
-    digitalWrite(S3, HIGH);
-    delayMicroseconds(200);
-    Serial.print(" G:");
-    Serial.print(pulseIn(SENSOR_OUT, LOW));
 
-    digitalWrite(S2, LOW);
-    digitalWrite(S3, HIGH);
-    delayMicroseconds(200);
-    Serial.print(" B:");
-    Serial.println(pulseIn(SENSOR_OUT, LOW));
+void loop() {
+  float gx, gy, gz;
 
-    delay(500);*/
-  // interfaceUI.update();
+  // Esperar a que haya datos del giroscopio disponibles
+  if (IMU.gyroscopeAvailable()) {
+    IMU.readGyroscope(gx, gy, gz);
 
-  float distance = ultrasonic.getDistance();
-  if(distance <= 18.0) {
-    Serial.println("Obstaculo");
-    motors.stop();
-    delay(2000);
+    unsigned long tiempoActual = millis();
+    float tiempoDelta = (tiempoActual - tiempoPrevio) / 1000.0; // en segundos
+    tiempoPrevio = tiempoActual;
 
-    // Gira der
-    motors.setSpeed(150);
+    // Asumimos que el giro es sobre el eje Z (en grados por segundo)
+    float velocidadAngular = gz; 
+    
+    // Filtro simple para ignorar el ruido cerca de 0
+    if (abs(velocidadAngular) > 0.5) { 
+      anguloAcumulado += velocidadAngular * tiempoDelta;
+    }
+
+    // Ejecutar giro a la derecha
     motors.right();
-    delay(500);
 
-    motors.stop();
-    delay(500);
-
-    // Avanza X
-    motors.setSpeed(110);
-    motors.forward();
-    delay(300);
-
-    motors.stop();
-    delay(500);
-
-    /// Gira izq
-    motors.setSpeed(150);
-    motors.left();
-    delay(700);
-
-    motors.stop();
-    delay(500);
-
-    // Avanza Y
-    motors.setSpeed(110);
-    motors.forward();
-    delay(500);
-
-    motors.stop();
-    delay(500);
-
-    /// Gira izq
-    motors.setSpeed(150);
-    motors.left();
-    delay(700);
-
-
-    motors.stop();
-    delay(500);
-
-    // Avanza X
-    motors.setSpeed(110);
-    motors.forward();
-    delay(300);
-
-
-    motors.stop();
-    delay(500);
-
-
-
-    // Gira der
-    motors.setSpeed(150);
-    motors.right();
-    delay(500);
-
-    motors.stop();
-    delay(500);
-
-
+    // Detenerse al llegar a 90 grados (-16 por inercia)
+    if (abs(anguloAcumulado) >= 74.0) {
+      motors.stop();
+      delay (1000);
+      anguloAcumulado = 0;
+      tiempoPrevio = 0;
+      motors.forward();
+      motors.setSpeed(95);
+      delay(10);
+    }
   }
-  delay(50);
 }
