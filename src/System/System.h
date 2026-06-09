@@ -1,22 +1,10 @@
 #pragma once
-#include "ButtonUI.h"
 #include "../color/TCS230.h"
 #include "../motor/MotorDriver.h"
 #include <Arduino.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
 #include "../config/default.h"
 #include "../ultrasonic/Ultrasonic.h"
-enum UIState
-{
-    UI_MENU,
-    UI_START,
-    UI_VIEW_COLORS,
-    //UI_VIEW_COLOR_ACTUAL,
-    UI_OBSTACLE,
-    UI_VIEW_GIROSCOPIO,
-    UI_VIEW_MOTOR
-};
+
 enum RobotAction
 {
     ACTION_RIGHT,    // Rojo
@@ -27,30 +15,18 @@ enum RobotAction
     ACTION_STOP      // Negro
 };
 
-class InterfaceUI
+class System
 {
 
 private:
-    ButtonUI &button;
-    Adafruit_SSD1306 &display;
     TCS230 &sensor;
     MotorDriver &motors;
-    UIState currentState;
     Ultrasonic ultrasonic;
-    uint8_t selectedIndex;
-    uint8_t menuLength;
 
     bool actionInProgress = false;
     unsigned long actionStartTime = 0;
     const unsigned long ACTION_DURATION = 2000; // 2 segundo
-
-    struct MenuItem
-    {
-        const char *label;
-        UIState targetState;
-    };
-    static const MenuItem menuItems[];
-    bool needsRedraw;
+        
 
     static const char *colorMenu[7];
 
@@ -73,11 +49,7 @@ private:
     ColorSample lastColorSample;
 
 public:
-    InterfaceUI(Adafruit_SSD1306 &oled, ButtonUI &btn, TCS230 &colorSensor, MotorDriver &motor, Ultrasonic &ultrasonic);
-    void begin();
-    void update();
-    void ui_nextItem();
-    void ui_select();
-    UIState ui_getState();
+    System(TCS230 &colorSensor, MotorDriver &motor, Ultrasonic &ultrasonic);
     void executeAction(RobotAction action);
+    void update();
 };
