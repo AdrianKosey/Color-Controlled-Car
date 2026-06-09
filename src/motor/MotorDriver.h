@@ -19,7 +19,7 @@ private:
   float gx, gy, gz;
 
   // Restado a angulos contemplando inercia
-  const int ANGLE_FIX = 17;
+  const int ANGLE_FIX = 18;
 
 public:
   MotorDriver(int in1, int in2, int in3, int in4, int ena, int enb);

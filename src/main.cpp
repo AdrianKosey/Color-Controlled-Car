@@ -52,19 +52,15 @@ void loop() {
   motors.forward();
   delay(500);
 
+
+  motors.stop();
+  delay(1000);
+
   motors.rotateDegreesCW(90);
   delay(1000);
 
-  motors.forward();
-  delay(1000);
 
-  motors.rotateDegreesCW(120);
-  delay(1000);
-
-  motors.forward();
-  delay(500);
-
-  motors.rotateDegreesCW(150);
+  motors.stop();
   delay(1000);
 
   motors.forward();
@@ -72,18 +68,58 @@ void loop() {
 
 
   motors.stop();
-  delay(100);
-  motors.rotateDegreesCCW(180);
   delay(1000);
 
-  motors.forward();
+  motors.rotateDegreesCW(120);
   delay(1000);
 
-  motors.rotateDegreesCW(135);
+
+  motors.stop();
   delay(1000);
 
   motors.forward();
   delay(500);
+
+
+  motors.stop();
+  delay(1000);
+
+  motors.rotateDegreesCW(120);
+  delay(1000);
+
+  motors.stop();
+  delay(1000);
+
+  motors.stop();
+  delay(1000);
+
+  motors.forward();
+  delay(1000);
+
+  motors.stop();
+  delay(1000);
+
+  motors.rotateDegreesCCW(180);
+  delay(1000);
+
+  motors.stop();
+  delay(1000);
+
+  motors.forward();
+  delay(1000);
+
+
+  motors.stop();
+  delay(1000);
+
+  motors.rotateDegreesCW(135);
+  delay(1000);  
+
+  motors.forward();
+  delay(500);
+
+  motors.stop();
+  delay(1000);
 
   motors.rotateDegreesCW(45);
   delay(1000);
