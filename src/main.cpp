@@ -30,26 +30,6 @@ void setup()
 
 void loop()
 {
-  // put your main code here, to run repeatedly:
-  /*digitalWrite(S2, LOW);
-    digitalWrite(S3, LOW);
-    delayMicroseconds(200);
-    Serial.print("R:");
-    Serial.print(pulseIn(SENSOR_OUT, LOW));
-
-    digitalWrite(S2, HIGH);
-    digitalWrite(S3, HIGH);
-    delayMicroseconds(200);
-    Serial.print(" G:");
-    Serial.print(pulseIn(SENSOR_OUT, LOW));
-
-    digitalWrite(S2, LOW);
-    digitalWrite(S3, HIGH);
-    delayMicroseconds(200);
-    Serial.print(" B:");
-    Serial.println(pulseIn(SENSOR_OUT, LOW));
-
-    delay(500);*/
-  interfaceUI.update();
+  interfaceUI.update();  
   delay(10);
 }

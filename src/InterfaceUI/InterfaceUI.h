@@ -41,8 +41,6 @@ private:
     uint8_t menuLength;
 
     bool actionInProgress = false;
-    unsigned long actionStartTime = 0;
-    const unsigned long ACTION_DURATION = 2000; // 2 segundo
 
     struct MenuItem
     {

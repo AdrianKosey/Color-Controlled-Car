@@ -46,6 +46,8 @@ InterfaceUI::InterfaceUI(Adafruit_SSD1306 &oled, ButtonUI &btn, TCS230 &colorSen
     motorModeInitialized = false;
     for (int i = 0; i < 128; i++)
         gyroHistory[i] = 0;
+
+    currentState = UI_START;
 }
 
 void InterfaceUI::begin()
@@ -86,24 +88,13 @@ void InterfaceUI::update()
             motorModeInitialized = true;
 
             motors.stop();
-            motors.resetHeading();
             // 60 works good with full battery
-            motors.setSpeed(75);
+            motors.setSpeed(100);
             lastColorRead = millis();
 
             actionInProgress = false;
         }
 
-        // SI HAY ACCIÓN EN CURSO Y NO ES AVANZAR (BLOQUEO TEMPORAL)
-        if (actionInProgress)
-        {
-            if (millis() - actionStartTime >= ACTION_DURATION)
-            {
-                actionInProgress = false;
-                motors.setSpeed(75);
-                motors.stop();
-            } 
-        }
 
         else
         {
@@ -122,13 +113,12 @@ void InterfaceUI::update()
                     // Detener motores y mapear 100 veces colores
                     motors.stop();
                     float bestColor = 0;
-                    for (int i = 0; i < 100; i++)
+                    for (int i = 0; i < 50; i++)
                     {
                         bestColor += sensor.detectColor();
                     }
-                    bestColor /= 100.0;
+                    bestColor /= 50.0;
                     bestColor = round(bestColor);
-
 
                     currentColor = (int)bestColor;
                     // TESTING
@@ -147,7 +137,6 @@ void InterfaceUI::update()
                     else
                     {
                         executeAction(currentAction);
-                        actionStartTime = millis(); // Iniciamos temporizador
                         actionInProgress = true;    // Bloqueamos hasta que pase el tiempo
                     }
                     lastColorSample = sensor.readRGB();
@@ -161,7 +150,6 @@ void InterfaceUI::update()
                 }
 
                 needsRedraw = true;
-                Serial.println(motors.getSpeed());
             }
         }
     }
@@ -207,8 +195,7 @@ void InterfaceUI::update()
             motorModeInitialized = true;
 
             motors.stop();
-            motors.resetHeading();
-            motors.setSpeed(75);
+            motors.setSpeed(100);
             motors.forward();
 
             motorTimer = millis();
@@ -231,11 +218,10 @@ void InterfaceUI::update()
     else if (currentState == UI_VIEW_GIROSCOPIO)
     {
         // Valor eje z
-        float gz = motors.getGyroZ();
 
         // mapeamos
         // valor 0 centrado
-        int8_t mappedValue = (int8_t)constrain(gz / 4, -15, 15);
+        int8_t mappedValue = (int8_t)constrain(4, -15, 15);
 
         gyroHistory[historyIdx] = mappedValue;
         historyIdx = (historyIdx + 1) % 128; // Buffer circular
@@ -245,7 +231,6 @@ void InterfaceUI::update()
 
         if (evt == ButtonEvent::SHORT_PRESS)
         {
-            motors.resetHeading();
         }
         else if (evt == ButtonEvent::LONG_PRESS)
         {
@@ -401,7 +386,6 @@ void InterfaceUI::drawCurrentScreen()
 
             display.setCursor(0, 12);
             display.print("Z: ");
-            display.print(motors.getHeading(), 1); // angulo acumulado
             display.println(" deg");
         }
         break;
@@ -419,13 +403,11 @@ void InterfaceUI::drawCurrentScreen()
             // Heading actual
             display.setCursor(0, 24);
             display.print("Heading: ");
-            display.print(motors.getHeading(), 1);
             display.println(" deg");
 
             // Velocidad angular
             display.setCursor(0, 36);
             display.print("Gyro Z: ");
-            display.print(motors.getGyroZ(), 1);
             display.setCursor(0, 52);
             display.print("Long: Salir");
 
@@ -482,20 +464,30 @@ void InterfaceUI::executeAction(RobotAction action)
     switch (action)
     {
     case ACTION_FORWARD:
+        Serial.println("EXECUTE FORWARD");
         motors.forward();
         break;
 
     case ACTION_RIGHT:
-        motors.right();
-        // delay(2000);
+        // motors.right();
+
+        Serial.println("EXECUTE RIGHT");
+
+        motors.setSpeed(120);
+        motors.rotateDegreesCW(90);
         break;
 
     case ACTION_LEFT:
-        motors.left();
-        // delay(2000);
+        // motors.left();
+
+        Serial.println("EXECUTE LEFT");        
+        motors.setSpeed(120);
+        motors.rotateDegreesCCW(105);
         break;
 
     case ACTION_STOP:
+
+        Serial.println("EXECUTE STOP");
         motors.stop();
         delay(5000);
         break;
@@ -505,6 +497,8 @@ void InterfaceUI::executeAction(RobotAction action)
         break;
 
     case ACTION_TOGGLEV:
+
+        Serial.println("EXECUTE TOGGLE ");
         motorIsFast = !motorIsFast;
         motors.setSpeed(motorIsFast ? 120 : 75);
         motors.forward();

@@ -6,11 +6,11 @@
 #define BUTTON_UI_PIN 23
 
 // COLOR SENSOR
-#define S0 02
-#define S1 15
-#define S2 16
-#define S3 04
-#define SENSOR_OUT 17
+#define S0 16
+#define S1 04
+#define S2 05
+#define S3 17
+#define SENSOR_OUT 18
 
 // H BRIDGE L298N
 #define HBRIDGE_IN1 13
@@ -21,5 +21,5 @@
 #define HBRIDGE_ENB 26  // Motor Derecho
 
 // HC-SR04
-#define ECHO_PIN 5
-#define TRIGG_PIN 18
+#define ECHO_PIN 33
+#define TRIGG_PIN 32
