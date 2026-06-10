@@ -1,6 +1,5 @@
 #include <Arduino.h>
 #include "InterfaceUI/InterfaceUI.h"
-#include "InterfaceUI/ButtonUI.h"
 #include "color/TCS230.h"
 #include "config/default.h"
 #include "motor/MotorDriver.h"
@@ -8,10 +7,9 @@
 // OLED
 TCS230 sensorColor(S0, S1, S2, S3, SENSOR_OUT);
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-ButtonUI actionButton(BUTTON_UI_PIN);
 MotorDriver motors(HBRIDGE_IN1, HBRIDGE_IN2, HBRIDGE_IN3, HBRIDGE_IN4, 26, 25);
 Ultrasonic ultrasonic(ECHO_PIN, TRIGG_PIN);
-InterfaceUI interfaceUI(display, actionButton, sensorColor, motors, ultrasonic);
+InterfaceUI interfaceUI(display,sensorColor, motors, ultrasonic);
 
 
 void setup()
@@ -20,9 +18,7 @@ void setup()
   Serial.begin(115200);
   // Wire.begin();
   sensorColor.begin();
-  actionButton.begin();
   motors.begin();
-  interfaceUI.begin();
   ultrasonic.begin();
 
   Serial.println("Starting");
