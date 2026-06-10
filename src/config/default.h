@@ -16,3 +16,7 @@
 // HC-SR04
 #define ECHO_PIN 33
 #define TRIGG_PIN 32
+
+//WiFi
+#define WIFI_SSID "ESP32"
+#define WIFI_PASSWORD "244466666"
