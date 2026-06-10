@@ -1,8 +1,8 @@
 #include "SystemManager.h"
 #include "math.h"
 
-SystemManager::SystemManager(TCS230 &colorSensor, MotorDriver &motor, Ultrasonic &ultrasonic)
-    : colorSensor(colorSensor), motors(motor), ultrasonic(ultrasonic)
+SystemManager::SystemManager(TCS230 &colorSensor, MotorDriver &motor, Ultrasonic &ultrasonic, WebSocketsServer &webSocket)
+    : colorSensor(colorSensor), motors(motor), ultrasonic(ultrasonic), webSocket(webSocket)
 {
 }
 
@@ -10,6 +10,56 @@ void SystemManager::update()
 {
 
     static unsigned long lastColorRead = 0;
+    static unsigned long lastTelemetry = 0;
+    static unsigned long lastDistanceRead = 0;
+
+    // Lee distancia del ultrasónico cada 50ms para contar obstáculos
+    if (millis() - lastDistanceRead > 50)
+    {
+        lastDistanceRead = millis();
+        // Supongamos que un obstáculo está a menos de 15 cm
+        float distance = ultrasonic.getDistance();
+        if (distance > 0 && distance < 15.0) 
+        {
+            if (!wasObstacleDetected)
+            {
+                obstacleCount++;
+                wasObstacleDetected = true;
+            }
+        }
+        else
+        {
+            wasObstacleDetected = false;
+        }
+    }
+
+    // Enviar datos por WebSocket cada 500ms
+    if (millis() - lastTelemetry > 500)
+    {
+        lastTelemetry = millis();
+        String json = "{";
+        json += "\"color\":\"" + String(currentColor != -1 ? colorSensor.ColorStrings[currentColor] : "Ninguno") + "\",";
+        
+        String actionStr = "Detenido";
+        switch(currentAction) {
+            case ACTION_FORWARD: actionStr = "Adelante"; break;
+            case ACTION_BACKWARD: actionStr = "Atras"; break;
+            case ACTION_LEFT: actionStr = "Izquierda"; break;
+            case ACTION_RIGHT: actionStr = "Derecha"; break;
+            case ACTION_TOGGLEV: actionStr = "Cambio Vel."; break;
+            case ACTION_STOP: actionStr = "Detenido"; break;
+        }
+
+        json += "\"accion\":\"" + actionStr + "\",";
+        json += "\"velocidad\":\"" + String(motorIsFast ? "Rápida" : "Lenta") + "\",";
+        json += "\"obstaculos\":\"" + String(obstacleCount) + "\","; 
+        json += "\"vueltasDerecha\":\"" + String(rightTurns) + "\","; 
+        json += "\"vueltasIzquierda\":\"" + String(leftTurns) + "\""; 
+        json += "}";
+        
+        webSocket.broadcastTXT(json);
+    }
+
     // Lee color cada 200 milisegundos
     if (millis() - lastColorRead > 200)
     {
@@ -73,11 +123,13 @@ void SystemManager::executeAction(RobotAction action)
         break;
 
     case ACTION_RIGHT:
+        rightTurns++;
         motors.right();
         // delay(2000);
         break;
 
     case ACTION_LEFT:
+        leftTurns++;
         motors.left();
         // delay(2000);
         break;

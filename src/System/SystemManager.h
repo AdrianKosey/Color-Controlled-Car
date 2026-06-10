@@ -1,4 +1,5 @@
 #pragma once
+#include <WebSocketsServer.h>
 #include "../color/TCS230.h"
 #include "../motor/MotorDriver.h"
 #include <Arduino.h>
@@ -22,6 +23,7 @@ private:
     TCS230 &colorSensor;
     MotorDriver &motors;
     Ultrasonic ultrasonic;
+    WebSocketsServer &webSocket;
 
     bool actionInProgress = false;
     unsigned long actionStartTime = 0;      
@@ -31,8 +33,13 @@ private:
     int currentColor = -1;
     bool motorIsFast;
 
+    int rightTurns = 0;
+    int leftTurns = 0;
+    int obstacleCount = 0;
+    bool wasObstacleDetected = false;
+
 public:
-    SystemManager(TCS230 &colorSensor, MotorDriver &motor, Ultrasonic &ultrasonic);
+    SystemManager(TCS230 &colorSensor, MotorDriver &motor, Ultrasonic &ultrasonic, WebSocketsServer &webSocket);
     void executeAction(RobotAction action);
     void update();
 };
