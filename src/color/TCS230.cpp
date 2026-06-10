@@ -14,12 +14,12 @@ void TCS230::begin()
     digitalWrite(S0, LOW);
     digitalWrite(S1, HIGH);
 
-    colors[0] = {350, 1260, 990, true};   // Rojo
-    colors[1] = {1372, 775, 883, true};   // Verde
-    colors[2] = {1556, 1442, 904, true};  // Azul
-    colors[3] = {230, 378, 665, true};    // Amarillo
-    colors[4] = {207, 229, 191, true};    // Blanco
-    colors[5] = {1582, 1805, 1515, true}; // Negro
+    colors[0] = {342, 1682, 1257, true};   // Rojo
+    colors[1] = {2000, 970, 1150, true};   // Verde
+    colors[2] = {2410, 2150, 1244, true};  // Azul
+    colors[3] = {211, 355, 705, true};    // Amarillo
+    colors[4] = {222, 245, 214, true};    // Blanco
+    colors[5] = {2390, 2635, 2230, true}; // Negro
 }
 
 int TCS230::getRed()

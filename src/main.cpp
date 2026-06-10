@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "System/System.h"
+#include "System/SystemManager.h"
 #include "color/TCS230.h"
 #include "config/default.h"
 #include "motor/MotorDriver.h"
@@ -8,14 +8,13 @@
 TCS230 sensorColor(S0, S1, S2, S3, SENSOR_OUT);
 MotorDriver motors(HBRIDGE_IN1, HBRIDGE_IN2, HBRIDGE_IN3, HBRIDGE_IN4, 26, 25);
 Ultrasonic ultrasonic(ECHO_PIN, TRIGG_PIN);
-System interfaceUI( sensorColor, motors, ultrasonic);
-
+SystemManager systemManager(sensorColor, motors, ultrasonic);
 
 void setup()
 {
   // put your setup code here, to run once:
   Serial.begin(115200);
-  // Wire.begin();
+  Wire.begin();
   sensorColor.begin();
   motors.begin();
   ultrasonic.begin();
@@ -25,6 +24,6 @@ void setup()
 
 void loop()
 {
-  interfaceUI.update();
+  systemManager.update();
   delay(10);
 }

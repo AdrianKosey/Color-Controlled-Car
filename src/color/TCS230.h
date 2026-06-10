@@ -1,8 +1,19 @@
 #pragma once
 #include <Arduino.h>
-#define MAX_COLORS 6
 
-struct ColorSample {
+enum Color
+{
+    RED,
+    GREEN,
+    BLUE,
+    YELLOW,
+    WHITE,
+    BLACK,
+    MAX_COLORS
+};
+
+struct ColorSample
+{
     uint16_t r;
     uint16_t g;
     uint16_t b;
@@ -17,8 +28,17 @@ private:
     int greenPW = 0;
     int bluePW = 0;
     ColorSample colors[MAX_COLORS];
+
 public:
     TCS230(uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3, uint8_t out);
+
+    const char *ColorStrings[MAX_COLORS] = {
+        "RED",
+        "GREEN",
+        "BLUE",
+        "YELLOW",
+        "WHITE",
+        "BLACK"};
     void begin();
     int getRed();
     int getBlue();
@@ -29,4 +49,3 @@ public:
     int detectColor();
     float calculateDistance(ColorSample a, ColorSample b);
 };
-
