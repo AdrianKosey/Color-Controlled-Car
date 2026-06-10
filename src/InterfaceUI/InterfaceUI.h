@@ -28,10 +28,6 @@ private:
     uint8_t selectedIndex;
     uint8_t menuLength;
 
-    bool actionInProgress = false;
-
-    bool needsRedraw;
-
     static const char *colorMenu[7];
 
     // WRONG: RobotAction is actually a enum, so making an array doesnt have sense

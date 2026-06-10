@@ -25,7 +25,6 @@ InterfaceUI::InterfaceUI(Adafruit_SSD1306 &oled, TCS230 &colorSensor, MotorDrive
 {
 
     selectedIndex = 0;
-    needsRedraw = true;
     colorIndex = 0;
     scrollOffset = 0;
     motorTimer = 0;
@@ -48,15 +47,13 @@ void InterfaceUI::update()
         motors.setSpeed(100);
         lastColorRead = millis();
 
-        actionInProgress = false;
     }
-
     else
     {
         if (millis() - lastColorRead > 100)
         {
             lastColorRead = millis();
-            // Lee sensor y detecta cambio
+            // Leectura de sensor
             int color = sensor.detectColor();
 
             // Si es el mismo color, nada que hacer
@@ -68,11 +65,12 @@ void InterfaceUI::update()
                 // Detener motores y mapear 100 veces colores
                 motors.stop();
                 float bestColor = 0;
-                for (int i = 0; i < 50; i++)
+                for (int i = 0; i < 20; i++)
                 {
                     bestColor += sensor.detectColor();
+                    delay(20);
                 }
-                bestColor /= 50.0;
+                bestColor /= 20.0;
                 bestColor = round(bestColor);
 
                 currentColor = (int)bestColor;
@@ -88,18 +86,7 @@ void InterfaceUI::update()
                 Serial.println(actionNames[currentColor]);
 
                 currentAction = (RobotAction)color;
-                if (currentAction == ACTION_FORWARD)
-                {
-                    executeAction(currentAction);
-                    actionInProgress = false; // No bloqueamos
-                }
-                else
-                {
-                    executeAction(currentAction);
-                    actionInProgress = true; // Bloqueamos hasta que pase el tiempo
-                }
-                lastColorSample = sensor.readRGB();
-                needsRedraw = true;
+                executeAction(currentAction);             
             }
             else
             {
@@ -107,8 +94,6 @@ void InterfaceUI::update()
                 currentAction = ACTION_STOP;
                 motors.stop();
             }
-
-            needsRedraw = true;
         }
     }
 }
@@ -156,6 +141,7 @@ void InterfaceUI::executeAction(RobotAction action)
         motorIsFast = !motorIsFast;
         motors.setSpeed(motorIsFast ? 120 : 75);
         motors.forward();
+        delay(200);
         break;
     }
 }
